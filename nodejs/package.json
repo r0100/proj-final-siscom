@@ -1,0 +1,21 @@
+{
+  "name": "proj-final-siscom",
+  "version": "1.0.0",
+  "description": "Projeto final da disciplina de sistemas de comunicação",
+  "main": "index.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/r0100/proj-final-siscom.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/r0100/proj-final-siscom/issues"
+  },
+  "homepage": "https://github.com/r0100/proj-final-siscom#readme",
+  "dependencies": {
+    "wavefile": "^11.0.0"
+  }
+}
