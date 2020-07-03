@@ -1,5 +1,5 @@
 'use strict'
-const aux = require("./auxiliary");
+const aux = require("../auxiliary");
 
 module.exports = {
     amiqdemod: function(iq, fltr_coef)

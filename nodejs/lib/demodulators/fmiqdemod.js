@@ -1,6 +1,6 @@
 'use strict'
 
-let aux = require("./auxiliary");
+let aux = require("../auxiliary");
 let cnv = require("ml-convolution")
 
 

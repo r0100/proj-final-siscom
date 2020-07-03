@@ -4,11 +4,14 @@ const fs = require('fs');
 const wavefile = require('wavefile');
 let wav = new wavefile.WaveFile();
 
-const aux = require('./auxiliary');
-const am = require('./amiqdemod');
-const fm = require('./fmiqdemod');
-const lsb = require('./lsbiqdemod');
-const usb = require('./usbiqdemod');
+const aux = require('./lib/auxiliary');
+
+const {
+    fmiqdemod,
+    amiqdemod,
+    usbiqdemod,
+    lsbiqdemod
+} = require('./lib/demodulators'); 
 
 //código de teste de binário (que vai ser usado para o rtl-sdr)
 //let path = "Hadouken.bin";
@@ -19,7 +22,7 @@ const usb = require('./usbiqdemod');
 
 
 //código de teste de wav (o qual será usado) 
-let path = "audiomod.wav";
+let path = "../audio_test/teste_100900kHz.wav";
 wav.fromBase64(aux.wavreader(path));
 let audio = wav.getSamples();
 let iq = [audio[0, 0], audio[0, 1]];
@@ -41,15 +44,11 @@ let fm_filter = [0.0005, -0.0017, 0.0032, -0.0052, 0.0079, -0.0115, 0.0162, -0.0
 //let usb_filter = [];
 
 //let y = am.amiqdemod(iq, audio_filter);
-let y = fm.fmiqdemod(iq, fm_filter, audio_filter);
+let y = fmiqdemod(iq, fm_filter, audio_filter);
 console.log(y);
-
 wav.data.samples = y;
 wav.fmt.sampleRate = 75000; //não entendi o porquê, mas tem que reduzir a freq. de amost. por 2 para funcionar
 wav.fmt.byteRate = 150000; //para ficar igual ao byteRate do arquivo audiooriginal.wav 
-//console.log(wav);
-
 
 let file = wav.toBuffer();
-//fs.writeFileSync("audiodmdam.wav", file);
 fs.writeFileSync("audiodmdfm.wav", file);
