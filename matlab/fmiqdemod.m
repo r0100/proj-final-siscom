@@ -1,3 +1,5 @@
+%feito com base no código de Aarom Scher
+%www.aaronscher.com/wireless_com_SDR/RTL_SDR_AM_spectrum_demod.html
 function [y] = FM_IQ_Demod(x, b1, b2)
     %b = firls(30,[0 .9],[0 1],'differentiator'); %filtro que imita uma derivada    
 
