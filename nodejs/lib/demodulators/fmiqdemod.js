@@ -1,21 +1,22 @@
 'use strict'
 
 let aux = require("../auxiliary");
-let cnv = require("ml-convolution")
+let cnv = require("ml-convolution");
+let fm_filter = [0.0005, -0.0017, 0.0032, -0.0052, 0.0079, -0.0115, 0.0162, -0.0223, 0.0302, -0.0406, 0.0548, -0.0752, 
+0.1077, -0.1699, 0.3502, 0, -0.3502, 0.1699, -0.1077, 0.0752, -0.0548, 0.0406, -0.0302, 0.0223,
+-0.0162, 0.0115, -0.0079, 0.0052, -0.0032, 0.0017, -0.0005];
 
 
 module.exports = {
-    fmiqdemod: function(iq, fltr_coef1, fltr_coef2)
+    fmiqdemod: function(iq, fltr_coef)
     {
         let buffer_size = iq[0].length;
         let y = [];
         let tmp = [];
         let min = 0;
-        //let i_conv = aux.conv(iq[0], fltr_coef1);
-        //let q_conv = aux.conv(iq[1], fltr_coef1);
-        let i_conv = cnv.fftConvolution(iq[0], fltr_coef1);
-        let q_conv = cnv.fftConvolution(iq[1], fltr_coef1);
-        let filter_order = fltr_coef2.length;
+        let i_conv = cnv.fftConvolution(iq[0], fm_filter);
+        let q_conv = cnv.fftConvolution(iq[1], fm_filter);
+        let filter_order = fltr_coef.length;
 
 
         for(let count = 0; count<buffer_size; count++)
@@ -27,7 +28,7 @@ module.exports = {
 
             if(count>filter_order)
             {
-                y[count] = aux.fir_filter(tmp, fltr_coef2);
+                y[count] = aux.fir_filter(tmp, fltr_coef);
                 tmp.shift();
             }
             else
