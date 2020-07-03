@@ -1,5 +1,6 @@
 'use strict'
 const fs = require('fs');
+let audio_filter = [0.0261, 0.1402, 0.3337, 0.3337, 0.1402, 0.0261];
 
 module.exports = {
     fir_filter: function(sinal, fltr_coef)
@@ -27,9 +28,6 @@ module.exports = {
         let y = [];
         let y_length = sinal1.length + sinal2.length;
         let dl = Math.round((y_length-sn1_length)/2);
-
-        //console.log(sn1_length);
-        //console.log(sn2_length);
 
         //formula da convolucao: u*v = y[n] = \sum_{m=0}^n u[m]v[n-m]
 
