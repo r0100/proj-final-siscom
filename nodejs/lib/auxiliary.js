@@ -1,7 +1,6 @@
 'use strict'
 const fs = require('fs');
-let audio_filter = [0.0261, 0.1402, 0.3337, 0.3337, 0.1402, 0.0261];
-
+ 
 module.exports = {
     fir_filter: function(sinal, fltr_coef)
     {
@@ -19,5 +18,7 @@ module.exports = {
     {
         let file = fs.readFileSync(path, 'base64');
         return file;
-    }
+    },
+    audio_filter: [0.0261, 0.1402, 0.3337, 0.3337, 0.1402, 0.0261]
+
 };

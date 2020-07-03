@@ -26,6 +26,7 @@ let path = "../audio_test/teste_100900kHz.wav";
 wav.fromBase64(aux.wavreader(path));
 let audio = wav.getSamples();
 let iq = [audio[0, 0], audio[0, 1]];
+console.log(iq)
 for(let i = 0; i<iq[0].length; i++)
 {
     iq[0][i] -= 127.5;
@@ -33,8 +34,7 @@ for(let i = 0; i<iq[0].length; i++)
 }
 
 //let y = am.amiqdemod(iq, audio_filter);
-let y = fmiqdemod(iq, fm_filter, audio_filter);
-console.log(y);
+let y = fmiqdemod(iq, aux.audio_filter);
 wav.data.samples = y;
 wav.fmt.sampleRate = 75000; //não entendi o porquê, mas tem que reduzir a freq. de amost. por 2 para funcionar
 wav.fmt.byteRate = 150000; //para ficar igual ao byteRate do arquivo audiooriginal.wav 
