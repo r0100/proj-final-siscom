@@ -47,6 +47,7 @@
 	<input
 	  id="vol"
 	  name="volume" type="range" value="50" min="0" max="100"
+	  onmousemove="updateVol()"
 	  onchange="vol_value=updateVol()"
 	  /><br><br>
 
@@ -55,6 +56,7 @@
 	<input
 	  id="frq"
 	  name="freq-sint" type="range" value="97.5" min="85" max="110" step="0.5"
+	  onmousemove="updateFrq('frq')"
 	  onchange="freq=updateFrq('frq')"
 	  ><br><br>
 
@@ -62,12 +64,14 @@
 	<input
 	  id="bndeq"
 	  name="banda-esq" type="range" value="16" min="0" max="25" step="0.5"
+	  onmousemove="updateFrq('bndeq')"
 	  onchange="bnd_esq=updateFrq('bndeq')"
 	  />
 	<label for="banda-dir">Banda direita</label>
 	<input
 	  id="bnddr"
 	  name="banda-dir" type="range" value="16" min="0" max="25" step="0.5"
+	  onmousemove="updateFrq('bnddr')"
 	  onchange="bnd_dir=updateFrq('bnddr')"
 	  /><br><br>
 	
