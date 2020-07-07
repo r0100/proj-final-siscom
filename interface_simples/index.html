@@ -1,0 +1,104 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8"/>
+    <title>RTL-SDR Player</title>
+    
+    <link href="style.css" rel="stylesheet"/>
+    <!--ícone tirado de https://commons.wikimedia.org/wiki/File:Radio_Takchang.jpg-->
+    <link rel="icon"  href="favicon.jpg" />
+    
+    <script src="source.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.0.js"></script>
+  </head>
+  <body>
+    <div id="corpo-princ">
+      <h1 id="titulo-princ">Player online de SDR</h1>
+      <h2 id="subtitulo-princ">Versão simples para testes</h2>
+      <br/><br/>
+
+      <!--Por padrão, os ids dentro de info-text são o nome do id do input ao qual se referem seguido de show (e.g. frq==>frqshow)-->
+      <div id="info-text">
+	<p id="frqshow">Frequência Central: 97.5MHz</p>
+	<p id="bndeqshow">Banda Esquerda: 16MHz</p>
+	<p id="bnddrshow">Banda Direita: 16MHz</p>
+	<p id="dmdshow">Método de Demodulação: Nenhuma</p>
+	<p id="onoffshow">Status: Desligado</p>
+	<p id="volshow">Volume: 50%</p>
+	<p id="fltshow">Filtro anti-ruído: Ativado</p>
+	
+      </div>
+
+      <br><br>
+
+      <form action="" id="controle" onchange="sendServer(false)">
+	
+	<!--Funcionamento e volume-->	
+	<div id="on-off-sect" onchange="onoff=updateStatus(event.target.value)">
+	  <label for="on-off">Funcionamento</label>
+	  <input name="on-off" type="radio" value="on"/>
+	  <label for="on">Ligado</label>
+	  
+	  <input name="on-off" type="radio" value="off" checked="checked"/>
+	  <label for="off">Desligado</label><br>
+	</div>
+
+	<label for="volume">Volume: </label>
+	<input
+	  id="vol"
+	  name="volume" type="range" value="50" min="0" max="100"
+	  onchange="vol_value=updateVol()"
+	  /><br><br>
+
+	<!--Frequência e banda de recepção-->
+	<label for="freq-sint">Frequência de sintonização (MHz)</label>
+	<input
+	  id="frq"
+	  name="freq-sint" type="range" value="97.5" min="85" max="110" step="0.5"
+	  onchange="freq=updateFrq('frq')"
+	  ><br><br>
+
+	<label for="banda-esq">Banda esquerda</label>
+	<input
+	  id="bndeq"
+	  name="banda-esq" type="range" value="16" min="0" max="25" step="0.5"
+	  onchange="bnd_esq=updateFrq('bndeq')"
+	  />
+	<label for="banda-dir">Banda direita</label>
+	<input
+	  id="bnddr"
+	  name="banda-dir" type="range" value="16" min="0" max="25" step="0.5"
+	  onchange="bnd_dir=updateFrq('bnddr')"
+	  /><br><br>
+	
+	<!--Método de demodulação-->
+	<div id="dmd-sect" onchange="dmd=updateDemod(event.target.value)">
+	  <label for="">Método de demodulação:</label>
+	  
+	  <input name="demod" type="radio" value="nenhum" checked="checked"/>
+	  <label for="nenhum">Nenhum</label>
+	  
+	  <input name="demod" type="radio" value="am"/>
+	  <label for="am">AM</label>
+	  
+	  <input name="demod" type="radio" value="fm"/>
+	  <label for="fm">FM</label>
+	  
+	  <input name="demod" type="radio" value="lsb"/>
+	  <label for="lsb">LSB</label>
+	  
+	  <input name="demod" type="radio" value="usb"/>
+	  <label for="usb">USB</label><br><br>
+	</div>
+
+	<input
+	  name="filtro-ruido" type="checkbox" value="filtro" checked="checked"
+	  onchange="flt=updateFilt(event.target.checked)"
+	  />
+	<label for="filtro-ruido">Filtrar ruido</label><br>
+
+	<input id="submit-btn" type="submit" hidden/>
+      </form>
+    </div>
+  </body>
+</html>
