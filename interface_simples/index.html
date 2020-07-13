@@ -3,15 +3,15 @@
   <head>
     <meta charset="UTF-8"/>
     <title>RTL-SDR Player</title>
-    
+
     <link href="style.css" rel="stylesheet"/>
     <!--ícone tirado de https://commons.wikimedia.org/wiki/File:Radio_Takchang.jpg-->
     <link rel="icon"  href="favicon.jpg" />
-    
+
     <script src="source.js"></script>
     <script src="https://code.jquery.com/jquery-3.5.0.js"></script>
   </head>
-  <body>
+  <body onload="initInfo()">
     <div id="corpo-princ">
       <h1 id="titulo-princ">Player online de SDR</h1>
       <h2 id="subtitulo-princ">Versão simples para testes</h2>
@@ -19,26 +19,26 @@
 
       <!--Por padrão, os ids dentro de info-text são o nome do id do input ao qual se referem seguido de show (e.g. frq==>frqshow)-->
       <div id="info-text">
-	<p id="frqshow">Frequência Central: 97.5MHz</p>
-	<p id="bndeqshow">Banda Esquerda: 16MHz</p>
-	<p id="bnddrshow">Banda Direita: 16MHz</p>
-	<p id="dmdshow">Método de Demodulação: Nenhuma</p>
-	<p id="onoffshow">Status: Desligado</p>
-	<p id="volshow">Volume: 50%</p>
-	<p id="fltshow">Filtro anti-ruído: Ativado</p>
-	
+	<p id="frqshow"></p>
+	<p id="bndeqshow"></p>
+	<p id="bnddrshow"></p>
+	<p id="dmdshow"></p>
+	<p id="onoffshow"></p>
+	<p id="volshow"></p>
+	<p id="fltshow"></p>
+
       </div>
 
       <br><br>
 
-      <form action="" id="controle" onchange="sendServer(false)">
-	
-	<!--Funcionamento e volume-->	
+      <form action="" method="post" id="controle" onchange="sendServer(true)">
+
+	<!--Funcionamento e volume-->
 	<div id="on-off-sect" onchange="onoff=updateStatus(event.target.value)">
 	  <label for="on-off">Funcionamento</label>
 	  <input name="on-off" type="radio" value="on"/>
 	  <label for="on">Ligado</label>
-	  
+
 	  <input name="on-off" type="radio" value="off" checked="checked"/>
 	  <label for="off">Desligado</label><br>
 	</div>
@@ -74,23 +74,23 @@
 	  onmousemove="updateFrq('bnddr')"
 	  onchange="bnd_dir=updateFrq('bnddr')"
 	  /><br><br>
-	
+
 	<!--Método de demodulação-->
 	<div id="dmd-sect" onchange="dmd=updateDemod(event.target.value)">
 	  <label for="">Método de demodulação:</label>
-	  
+
 	  <input name="demod" type="radio" value="nenhum" checked="checked"/>
 	  <label for="nenhum">Nenhum</label>
-	  
+
 	  <input name="demod" type="radio" value="am"/>
 	  <label for="am">AM</label>
-	  
+
 	  <input name="demod" type="radio" value="fm"/>
 	  <label for="fm">FM</label>
-	  
+
 	  <input name="demod" type="radio" value="lsb"/>
 	  <label for="lsb">LSB</label>
-	  
+
 	  <input name="demod" type="radio" value="usb"/>
 	  <label for="usb">USB</label><br><br>
 	</div>
