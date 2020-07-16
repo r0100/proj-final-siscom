@@ -4,9 +4,9 @@
     <meta charset="UTF-8"/>
     <title>RTL-SDR Player</title>
 
-    <link href="style.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="style.css"/>
     <!--ícone tirado de https://commons.wikimedia.org/wiki/File:Radio_Takchang.jpg-->
-    <link rel="icon"  href="favicon.jpg" />
+    <link rel="icon" type="image/jpg" href="favicon.ico"/>
 
     <script src="source.js"></script>
     <script src="https://code.jquery.com/jquery-3.5.0.js"></script>
@@ -34,11 +34,7 @@
       <form action="" method="post" id="controle" onchange="sendServer(true)">
 
 	<!--Funcionamento e volume-->
-<<<<<<< HEAD
 	<div id="on-off-sect" onchange="usr_cfg.onoff=updateStatus(event.target.value)">
-=======
-	<div id="on-off-sect" onchange="onoff=updateStatus(event.target.value)">
->>>>>>> ea14f2cd75aff882f96e4aa7e764521924b54a6c
 	  <label for="on-off">Funcionamento</label>
 	  <input name="on-off" type="radio" value="on"/>
 	  <label for="on">Ligado</label>
