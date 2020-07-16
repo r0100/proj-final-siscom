@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 {
   "name": "proj-final-siscom",
   "version": "1.0.0",
@@ -25,31 +24,3 @@
     "wavefile": "^11.0.0"
   }
 }
-=======
-{
-  "name": "proj-final-siscom",
-  "version": "1.0.0",
-  "description": "Projeto final da disciplina de sistemas de comunicação",
-  "main": "index.js",
-  "scripts": {},
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/r0100/proj-final-siscom.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/r0100/proj-final-siscom/issues"
-  },
-  "homepage": "https://github.com/r0100/proj-final-siscom#readme",
-  "dependencies": {
-    "install": "^0.13.0",
-    "ml-convolution": "^2.0.0",
-    "npm": "^6.14.6",
-    "speaker": "^0.5.1",
-    "wav": "^1.0.2",
-    "wavefile": "^11.0.0"
-  }
-}
->>>>>>> ea14f2cd75aff882f96e4aa7e764521924b54a6c
