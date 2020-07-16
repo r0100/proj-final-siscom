@@ -2,23 +2,27 @@
 
 'use strict'
 
-let onoff="off";
-let vol_value="50";
-let freq=(85+110)/2;
-let bnd_esq=16;
-let bnd_dir=16;
-let dmd="nenhum";
-let flt=true;
+let usr_cfg =
+{
+    onoff: "off",
+    vol_value: "50",
+    freq: (85+110)/2,
+    bnd_esq: 16,
+    bnd_dir: 16,
+    dmd: "nenhum",
+    flt: true,
+    user_id: "000"
+};
 
 function printAll()
 {
-    console.log("onoff="+onoff);
-    console.log("vol="+vol_value);
-    console.log("frq="+freq);
-    console.log("bndeq="+bnd_esq);
-    console.log("bnddr="+bnd_dir);
-    console.log("dmd="+dmd);
-    console.log("flt="+flt);
+    console.log("onoff="+usr_cfg.onoff);
+    console.log("vol="+usr_cfg.vol_value);
+    console.log("frq="+usr_cfg.freq);
+    console.log("bndeq="+usr_cfg.bnd_esq);
+    console.log("bnddr="+usr_cfg.bnd_dir);
+    console.log("dmd="+usr_cfg.dmd);
+    console.log("flt="+usr_cfg.flt);
 }
 
 function showInfoText(code, value)
@@ -57,13 +61,13 @@ function showInfoText(code, value)
 
 function initInfo()
 {
-    $("#frqshow").html(showInfoText("freq",freq));
-    $("#bndeqshow").html(showInfoText("bnd_esq", bnd_esq));
-    $("#bnddrshow").html(showInfoText("bnd_dir", bnd_dir));
-    $("#dmdshow").html(showInfoText("dmd", dmd));
-    $("#onoffshow").html(showInfoText("onoff", onoff));
-    $("#volshow").html(showInfoText("vol_value", vol_value));
-    $("#fltshow").html(showInfoText("flt", flt));
+    $("#frqshow").html(showInfoText("freq",usr_cfg.freq));
+    $("#bndeqshow").html(showInfoText("bnd_esq", usr_cfg.bnd_esq));
+    $("#bnddrshow").html(showInfoText("bnd_dir", usr_cfg.bnd_dir));
+    $("#dmdshow").html(showInfoText("dmd", usr_cfg.dmd));
+    $("#onoffshow").html(showInfoText("onoff", usr_cfg.onoff));
+    $("#volshow").html(showInfoText("vol_value", usr_cfg.vol_value));
+    $("#fltshow").html(showInfoText("flt", usr_cfg.flt));
 }
 
 function sendServer(cond)
@@ -72,11 +76,13 @@ function sendServer(cond)
 	return;
 
     //$('#submit-btn').click();
+    let user_data = JSON.stringify(usr_cfg);
+    console.log(user_data);
     $.ajax
     ({
     	method: "POST",
     	url: "/receiver.js",
-    	data: "onoff="+onoff+"&vol_value="+vol_value+"&freq="+freq+"&bnd_esq="+bnd_esq+"&bnd_dir="+bnd_dir+"&dmd="+dmd+"&flt="+flt,
+    	data: user_data,
     	contentType: "application/json; charset=utf-8",
     	dataType: "json",
     	async: true,
