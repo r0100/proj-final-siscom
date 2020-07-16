@@ -53,7 +53,11 @@ function extractPost(req)
         req.on('data', (chunk) =>
         {
             //console.log(chunk.toString());
+<<<<<<< HEAD
             body_str += chunk.toString();
+=======
+            body_str += chunk.toString() + "&";
+>>>>>>> ea14f2cd75aff882f96e4aa7e764521924b54a6c
         });
         //sim, isto é uma gambiarra muito feia, eu não me orgulho desse código
         setTimeout( () =>
@@ -94,12 +98,21 @@ const server = http.createServer((req, res)=>
     {
         console.log("POST request received");
         extractPost(req)
+<<<<<<< HEAD
             .then(	
             function(body_str)
 		{
                 console.log("body string = "+body_str);
 
                 let body = JSON.parse(body_str);/*parseBody(body_str);*/
+=======
+        .then(
+            function(body_str)
+            {
+                //console.log("body string = "+body_str);
+
+                let body = parseBody(body_str);
+>>>>>>> ea14f2cd75aff882f96e4aa7e764521924b54a6c
                 return body;
             }
         )

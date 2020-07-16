@@ -2,6 +2,7 @@
 
 'use strict'
 
+<<<<<<< HEAD
 let usr_cfg =
 {
     onoff: "off",
@@ -13,6 +14,15 @@ let usr_cfg =
     flt: true,
     user_id: "000"
 };
+=======
+let onoff="off";
+let vol_value="50";
+let freq=(85+110)/2;
+let bnd_esq=16;
+let bnd_dir=16;
+let dmd="nenhum";
+let flt=true;
+>>>>>>> ea14f2cd75aff882f96e4aa7e764521924b54a6c
 
 function printAll()
 {
@@ -70,19 +80,71 @@ function initInfo()
     $("#fltshow").html(showInfoText("flt", usr_cfg.flt));
 }
 
+function showInfoText(code, value)
+{
+    let text = "";
+    switch(code)
+    {
+	case "onoff":
+	text = "Status: " + ((value==="on")?"Ligado":"Desligado");
+	break;
+	case "vol_value":
+	text = "Volume: "+value+"%";
+	break;
+	case "freq":
+	text = "Frequência Central: "+value+"MHz";
+	break;
+	case "bnd_esq":
+	text = "Banda Esquerda: "+value+"MHz";
+	break;
+	case "bnd_dir":
+	text = "Banda Direita: "+value+"MHz";
+	break;
+	case "dmd":
+	text = "Método de Demodulação: " + ((value==="nenhum")?(value[0].toUpperCase()+value.substr(1)):value.toUpperCase());
+	break;
+	case "flt":
+	text = "Filtro anti-ruído: "+((value===true)?"Ligado":"Desligado");
+	break;
+	default:
+	text = "ERRO!";
+	break;
+    }
+
+    return text;
+}
+
+function initInfo()
+{
+    $("#frqshow").html(showInfoText("freq",freq));
+    $("#bndeqshow").html(showInfoText("bnd_esq", bnd_esq));
+    $("#bnddrshow").html(showInfoText("bnd_dir", bnd_dir));
+    $("#dmdshow").html(showInfoText("dmd", dmd));
+    $("#onoffshow").html(showInfoText("onoff", onoff));
+    $("#volshow").html(showInfoText("vol_value", vol_value));
+    $("#fltshow").html(showInfoText("flt", flt));
+}
+
 function sendServer(cond)
 {
     if(cond===false)
 	return;
 
     //$('#submit-btn').click();
+<<<<<<< HEAD
     let user_data = JSON.stringify(usr_cfg);
     console.log(user_data);
+=======
+>>>>>>> ea14f2cd75aff882f96e4aa7e764521924b54a6c
     $.ajax
     ({
     	method: "POST",
     	url: "/receiver.js",
+<<<<<<< HEAD
     	data: user_data,
+=======
+    	data: "onoff="+onoff+"&vol_value="+vol_value+"&freq="+freq+"&bnd_esq="+bnd_esq+"&bnd_dir="+bnd_dir+"&dmd="+dmd+"&flt="+flt,
+>>>>>>> ea14f2cd75aff882f96e4aa7e764521924b54a6c
     	contentType: "application/json; charset=utf-8",
     	dataType: "json",
     	async: true,
