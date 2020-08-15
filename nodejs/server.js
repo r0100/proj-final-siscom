@@ -6,7 +6,7 @@ const fs = require("fs");
 const aux = require("./lib/server-auxiliary");
 
 const HOSTNAME = '127.0.0.1';
-const PORT = 8080;
+const PORT = 3000;
 
 
 const server = http.createServer((req, res)=>
