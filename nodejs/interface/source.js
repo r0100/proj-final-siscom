@@ -1,4 +1,5 @@
 /*TODO: simplificar funções de atualização*/
+/*TODO: reescrever removendo jquery*/
 
 'use strict'
 
@@ -30,30 +31,30 @@ function showInfoText(code, value)
     let text = "";
     switch(code)
     {
-	case "onoff":
-	text = "Status: " + ((value==="on")?"Ligado":"Desligado");
-	break;
-	case "vol_value":
-	text = "Volume: "+value+"%";
-	break;
-	case "freq":
-	text = "Frequência Central: "+value+"MHz";
-	break;
-	case "bnd_esq":
-	text = "Banda Esquerda: "+value+"MHz";
-	break;
-	case "bnd_dir":
-	text = "Banda Direita: "+value+"MHz";
-	break;
-	case "dmd":
-	text = "Método de Demodulação: " + ((value==="nenhum")?(value[0].toUpperCase()+value.substr(1)):value.toUpperCase());
-	break;
-	case "flt":
-	text = "Filtro anti-ruído: "+((value===true)?"Ligado":"Desligado");
-	break;
-	default:
-	text = "ERRO!";
-	break;
+		case "onoff":
+		text = "Status: " + ((value==="on")?"Ligado":"Desligado");
+		break;
+		case "vol_value":
+		text = "Volume: "+value+"%";
+		break;
+		case "freq":
+		text = "Frequência Central: "+value+"MHz";
+		break;
+		case "bnd_esq":
+		text = "Banda Esquerda: "+value+"MHz";
+		break;
+		case "bnd_dir":
+		text = "Banda Direita: "+value+"MHz";
+		break;
+		case "dmd":
+		text = "Método de Demodulação: " + ((value==="nenhum")?(value[0].toUpperCase()+value.substr(1)):value.toUpperCase());
+		break;
+		case "flt":
+		text = "Filtro anti-ruído: "+((value===true)?"Ligado":"Desligado");
+		break;
+		default:
+		text = "ERRO!";
+		break;
     }
 
     return text;
@@ -142,12 +143,19 @@ function sendServer(cond)
 function updateStatus(status)
 {
     let text="";
-    if(status==="on")
-	text="Ligado";
-    else if(status==="off")
-	text="Desligado";
-    else
-	text="ERRO!";
+    if(status==="on") {
+		//$('#audio-file').play();
+		document.getElementById('audio-file').play();
+		text="Ligado";
+	}
+	else if(status==="off") {
+		//$('#audio-file').pause();
+		document.getElementById('audio-file').pause();
+		text="Desligado";
+	}
+	else {
+		text="ERRO!";
+	}
 
     $('#onoffshow').html("Status: "+text);
 

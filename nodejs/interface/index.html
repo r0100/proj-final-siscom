@@ -8,10 +8,20 @@
     <!--ícone tirado de https://commons.wikimedia.org/wiki/File:Radio_Takchang.jpg-->
     <link rel="icon" type="image/jpg" href="favicon.ico"/>
 
-    <script src="source.js"></script>
-    <script src="https://code.jquery.com/jquery-3.5.0.js"></script>
+	<!--Bibliotecas de manipulação de audio-->
+	<script src="auxiliary.js"></script>
+	<script src="amiqdemod.js"></script>
+	<!--
+	<script src="fmiqdemod.js"></script>
+	<script src="lsbiqdemod.js"></script>
+	<script src="usbiqdemod.js"></script>
+	-->
+
+	<!--Scripts relativos à página-->
+    <script src="interface-update.js"></script>
+	<script src="audio-manip.js""></script>
   </head>
-  <body onload="initInfo()">
+  <body onload="initInfo(); initAudio()">
     <div id="corpo-princ">
       <h1 id="titulo-princ">Player online de SDR</h1>
       <h2 id="subtitulo-princ">Versão simples para testes</h2>
@@ -32,15 +42,16 @@
 
       <br><br>
 
-      <form action="" method="post" id="controle" onchange="sendServer(true)">
+      <form action="" method="post" id="controle" onchange="sendServer(false)">
 
 	<!--Funcionamento e volume-->
-	<div id="on-off-sect" onchange="usr_cfg.onoff=updateStatus(event.target.value)">
+	<!--O id 'onoff' está repetido, deixar assim-->
+	<div id="on-off-sect" onchange="usr_cfg.onoff=updateInfoText(event.target); audioPlayPause(usr_cfg.onoff)">
 	  <label for="on-off">Funcionamento</label>
-	  <input name="on-off" type="radio" value="on"/>
+	  <input id='onoff' name="on-off" type="radio" value="on"/>
 	  <label for="on">Ligado</label>
 
-	  <input name="on-off" type="radio" value="off" checked="checked"/>
+	  <input id='onoff' name="on-off" type="radio" value="off" checked="checked"/>
 	  <label for="off">Desligado</label><br>
 	</div>
 
@@ -48,8 +59,8 @@
 	<input
 	  id="vol"
 	  name="volume" type="range" value="50" min="0" max="100"
-	  onmousemove="updateVol()"
-	  onchange="usr_cfg.vol_value=updateVol()"
+	  onmousemove="usr_cfg.vol=updateInfoText(event.target); updateVolume(usr_cfg.vol)"
+	  onchange="usr_cfg.vol=updateInfoText(event.target); updateVolume(usr_cfg.vol)"
 	  /><br><br>
 
 	<!--Frequência e banda de recepção-->
@@ -57,53 +68,59 @@
 	<input
 	  id="frq"
 	  name="freq-sint" type="range" value="97.5" min="85" max="110" step="0.5"
-	  onmousemove="updateFrq('frq')"
-	  onchange="usr_cfg.freq=updateFrq('frq')"
+	  onmousemove="updateInfoText(event.target)"
+	  onchange="usr_cfg.freq=updateInfoText(event.target)"
 	  ><br><br>
 
 	<label for="banda-esq">Banda esquerda</label>
 	<input
 	  id="bndeq"
 	  name="banda-esq" type="range" value="16" min="0" max="25" step="0.5"
-	  onmousemove="updateFrq('bndeq')"
-	  onchange="usr_cfg.bnd_esq=updateFrq('bndeq')"
+	  onmousemove="updateInfoText(event.target)"
+	  onchange="usr_cfg.bnd_esq=updateInfoText(event.target)"
 	  />
 	<label for="banda-dir">Banda direita</label>
 	<input
 	  id="bnddr"
 	  name="banda-dir" type="range" value="16" min="0" max="25" step="0.5"
-	  onmousemove="updateFrq('bnddr')"
-	  onchange="usr_cfg.bnd_dir=updateFrq('bnddr')"
+	  onmousemove="updateInfoText(event.target)"
+	  onchange="usr_cfg.bnd_dir=updateInfoText(event.target)"
 	  /><br><br>
 
 	<!--Método de demodulação-->
-	<div id="dmd-sect" onchange="usr_cfg.dmd=updateDemod(event.target.value)">
+	<!--O id 'dmd' está repetido, deixar assim-->
+	<div id="dmd-sect" onchange="usr_cfg.dmd=updateInfoText(event.target); updateDemod(usr_cfg.dmd)">
 	  <label for="">Método de demodulação:</label>
 
-	  <input name="demod" type="radio" value="nenhum" checked="checked"/>
+	  <input id='dmd' name="demod" type="radio" value="nenhum" checked="checked"/>
 	  <label for="nenhum">Nenhum</label>
 
-	  <input name="demod" type="radio" value="am"/>
+	  <input id='dmd' name="demod" type="radio" value="am"/>
 	  <label for="am">AM</label>
 
-	  <input name="demod" type="radio" value="fm"/>
+	  <input id='dmd' name="demod" type="radio" value="fm"/>
 	  <label for="fm">FM</label>
 
-	  <input name="demod" type="radio" value="lsb"/>
+	  <input id='dmd' name="demod" type="radio" value="lsb"/>
 	  <label for="lsb">LSB</label>
 
-	  <input name="demod" type="radio" value="usb"/>
+	  <input id='dmd' name="demod" type="radio" value="usb"/>
 	  <label for="usb">USB</label><br><br>
 	</div>
 
 	<input
-	  name="filtro-ruido" type="checkbox" value="filtro" checked="checked"
-	  onchange="usr_cfg.flt=updateFilt(event.target.checked)"
+	  id='flt' name="filtro-ruido" type="checkbox" checked="checked"
+	  onchange="event.target.value = (event.target.checked===true)?'on':'off'; usr_cfg.flt=updateInfoText(event.target); updateFilter(usr_cfg.flt)"
 	  />
 	<label for="filtro-ruido">Filtrar ruido</label><br>
 
 	<input id="submit-btn" type="submit" hidden/>
       </form>
     </div>
+
+	<audio id='audio-stream' loop hidden>
+		<source src="./audio" type="audio/wav"></source>
+	</audio>
+	<br><br><br>
   </body>
 </html>
