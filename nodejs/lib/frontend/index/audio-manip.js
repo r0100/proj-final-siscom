@@ -6,7 +6,7 @@ const usb = require('../../demodulators/usbiqdemod.js');
 'use strict'
 
 const AUDIO = '/audio';
-const LPF = 1000;
+const LPF = 16000;
 const NO_FILTER = 25000;
 const BUFFER_SIZE = 4096;
 
@@ -93,9 +93,10 @@ function initAudio() {
 
 	getAudio();
 
+	source.loop = true;
 	source.connect(demod).connect(filter).connect(volume).connect(ctx.destination);
 	source.start();
-
+	/*
 	source.onended = function() {
 		source.disconnect();
 		demod.disconnect();
@@ -103,6 +104,7 @@ function initAudio() {
 		volume.disconnect();
 		initAudio();
 	}
+	*/
 
 }
 
