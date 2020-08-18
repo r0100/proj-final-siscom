@@ -20,9 +20,25 @@ app.get('/', (req, res) => {
 });
 
 app.get('/audio', async (req, res) => {
-	res.writeHead(200, { 'Content-Type': 'audio/wav' });
-	let stream = fs.createReadStream(AUDIO_FILE);
-	stream.pipe(res);
+	//const stat = await getStat(AUDIO_FILE);
+	res.writeHead(209, {
+		'Content-Type': 'audio/wav',
+	});
+
+	//let stream = fs.createReadStream(AUDIO_FILE);
+	///stream.on('end', () => console.log('Fim do arquivo'));
+	//stream.pipe(res);
+
+	const forked = fork('./lib/stream/continuous-stream.js');
+
+	console.log('audio')
+	forked.on('message', msg => {
+		console.log(msg)
+		res.write(Buffer(msg.data))
+	})
+
+
+
 });
 
 app.get('/test', (req, res) => {

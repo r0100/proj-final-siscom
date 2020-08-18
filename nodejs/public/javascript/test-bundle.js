@@ -276,7 +276,9 @@ function init() {
         request.responseType = 'arraybuffer';
         request.onload = function() {
         let audioData = request.response;
-
+        /* request.onreadystatechange(function(){
+            console.log(request.response)
+        }) */
         audioCtx.decodeAudioData(audioData, function(buffer) {
             myBuffer = buffer;
         source.buffer = myBuffer;
