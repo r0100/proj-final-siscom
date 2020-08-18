@@ -4,18 +4,13 @@
 
 const audio_filter = [0.0261, 0.1402, 0.3337, 0.3337, 0.1402, 0.0261]; //filtro passa-baixa para 16000Hz
 
-const aux = {
+module.exports = {
 	fir_filter: fir_filter,
 	//wavreader: wavreader,
 	audio_filter: audio_filter
-};
+}; 
 
-if(typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
-	module.exports = aux; 
-}
-
-function fir_filter(sinal, fltr_coef)
-{
+function fir_filter(sinal, fltr_coef) {
     let sinal_length = sinal.length;
     let filter_order = fltr_coef.length;
     let y = 0;
@@ -25,6 +20,7 @@ function fir_filter(sinal, fltr_coef)
 
     return y;
 }
+
 /*
 function wavreader(path)
 {
@@ -36,54 +32,107 @@ function wavreader(path)
 },{}],2:[function(require,module,exports){
 'use strict'
 
+//let aux = require('../auxiliary'); //não é mais necessário pois usaremos a API WebAudio
+
+module.exports = {
+	iqdemod: amiqdemod
+}
+
+function amiqdemod(iq, fltr_coef)
+{
+	let offset = 0;
+	let buffer_size = iq[0].length;
+	let filter_order = fltr_coef.length;
+	let y = [];
+	let tmp = [];
+
+	for(let count = 0; count<buffer_size; count++)
+	{ 
+		let i = iq[0][count];
+		let q = iq[1][count];
+
+		tmp.push(Math.sqrt(i*i + q*q)); //tira a magnitude da amostra IQ
+
+		/*
+		//filtro
+		if(count>filter_order)
+		{
+			y[count] = aux.fir_filter(tmp, fltr_coef);
+			tmp.shift();
+		}
+		else
+		{
+			y[count] = tmp[count];
+		}
+		min = (min<y[count])?min:y[count]; //toma o menor valor do sinal 
+		*/
+		offset += y[count];
+	}
+
+	offset /= buffer_size;
+	for(let count = 0; count<buffer_size; count++)
+		y[count]-=offset; //retira o offset do sinal
+
+	return y;
+}
+
+/* Código do matlab para referência:
+function [y_AM_demodulated] = AM_IQ_Demod(y, fs)
+    [b, a] = butter(2, 18000/fs);
+    y_AM_demodulated = abs(y);
+    y_AM_demodulated = filter(b, a, y_AM_demodulated);
+    y_AM_demodulated = detrend(y_AM_demodulated);
+end
+*/
+
+},{}],3:[function(require,module,exports){
+'use strict'
+
 let aux = require("../auxiliary");
 let cnv = require("ml-convolution");
 let fm_filter = [0.0005, -0.0017, 0.0032, -0.0052, 0.0079, -0.0115, 0.0162, -0.0223, 0.0302, -0.0406, 0.0548, -0.0752, 
 0.1077, -0.1699, 0.3502, 0, -0.3502, 0.1699, -0.1077, 0.0752, -0.0548, 0.0406, -0.0302, 0.0223,
 -0.0162, 0.0115, -0.0079, 0.0052, -0.0032, 0.0017, -0.0005];
 
-/* if(typeof module!== 'undefined' && typeof module.exports !== 'undefined') {
-	module.exports = fmiqdemod;
-	aux = require("../auxiliary");
-} */
-
 module.exports = {
-    fmiqdemod: function(iq, fltr_coef)
-    {
-        let buffer_size = iq[0].length;
-        let y = [];
-        let tmp = [];
-        let min = 0;
-        let i_conv = cnv.fftConvolution(iq[0], fm_filter);
-        let q_conv = cnv.fftConvolution(iq[1], fm_filter);
-        let filter_order = fltr_coef.length;
-
-
-        for(let count = 0; count<buffer_size; count++)
-        {
-            let i = iq[0][count];
-            let q = iq[1][count];
-
-            tmp.push((i*q_conv[count] - q*i_conv[count])/(i*i + q*q));
-
-            if(count>filter_order)
-            {
-                y[count] = aux.fir_filter(tmp, fltr_coef);
-                tmp.shift();
-            }
-            else
-                y[count] = tmp[count];
-
-            min = (min<y[count])?min:y[count]; //toma o menor valor do sinal 
-
-        }
-
-        for(let count = 0; count<buffer_size; count++)
-            y[count]-=min; //retira o menor valor encontrado, de forma a tirar o offset sem tornar o sinal negativo 
-
-        return y;
-    }
+    iqdemod: fmiqdemod
 };
+
+function fmiqdemod(iq, fltr_coef) {
+let buffer_size = iq[0].length;
+let y = [];
+let tmp = [];
+let offset = 0;
+let i_conv = cnv.fftConvolution(iq[0], fm_filter);
+let q_conv = cnv.fftConvolution(iq[1], fm_filter);
+let filter_order = fltr_coef.length;
+
+
+for(let count = 0; count<buffer_size; count++)
+{
+    let i = iq[0][count];
+    let q = iq[1][count];
+
+    tmp.push((i*q_conv[count] - q*i_conv[count])/(i*i + q*q));
+
+    if(count>filter_order)
+    {
+	y[count] = aux.fir_filter(tmp, fltr_coef);
+	tmp.shift();
+    }
+    else
+	y[count] = tmp[count];
+
+    offset += y[count]; //toma o offset do sinal
+}
+
+offset /= buffer_size;
+for(let count = 0; count<buffer_size; count++)
+    y[count]-=offset;
+
+return y;
+}
+
 
 /* Código do matlab para referência:
 function [y_FM_demodulated] = FM_IQ_Demod(y, b1, b2)
@@ -102,8 +151,113 @@ function [y_FM_demodulated] = FM_IQ_Demod(y, b1, b2)
 end
 */
 
-},{"../auxiliary":1,"ml-convolution":5}],3:[function(require,module,exports){
-const  fmiqdemod  = require('../../demodulators/fmiqdemod.js'); 
+},{"../auxiliary":1,"ml-convolution":9}],4:[function(require,module,exports){
+module.exports = {
+    ...require('./amiqdemod'),
+    ...require('./fmiqdemod'),
+    ...require('./lsbiqdemod'),
+    ...require('./usbiqdemod'),
+};
+
+},{"./amiqdemod":2,"./fmiqdemod":3,"./lsbiqdemod":5,"./usbiqdemod":6}],5:[function(require,module,exports){
+'use strict'
+
+let aux = require("../auxiliary");
+
+module.exports = {
+    iqdemod: lsbiqdemod
+};
+
+function lsbiqdemod(iq, fltr_coef) {
+let buffer_size = iq[0].length;
+let filter_order = fltr_coef.length;
+let y = [];
+let tmp = [];
+
+for(let count = 0; count<buffer_size; count++) {
+    tmp.push(iq[0][count]-iq[1][count]);
+}
+
+/*
+if(count>filter_order) {
+    y[count] = fir_filter(tmp, fltr_coef);
+    tmp.shift();
+}
+else {
+    y[count] = tmp[count];
+}
+*/
+y = tmp;
+
+return y;
+}
+
+//acho que o hilbert não era realmente necessário
+/* Código do matlab para referência:
+function [y_LSB_demodulated] = LSB_IQ_Demod(y, b1, b2)
+    y_LSB_demodulated = 0;
+    %b1 = fir1(2, (fc+1000)/fs);
+    y_LSB_demodulated = filter(b1, 1, y);
+    y_LSB_demodulated = y_LSB_demodulated./abs(y_LSB_demodulated);
+    y_LSB_demodulated = real(y_LSB_demodulated) - imag(hilbert(imag(y_LSB_demodulated)));
+    %b2 = fir1(2, 18000/fs);
+    y_LSB_demodulated = filter(b2, 1, y_LSB_demodulated);
+end
+*/
+
+},{"../auxiliary":1}],6:[function(require,module,exports){
+'use strict'
+
+let aux = require("../auxiliary");
+
+
+module.exports = {
+    iqdemod: usbiqdemod
+};
+
+function usbiqdemod(iq, fltr_coef) {
+let buffer_size = iq[0].length;
+let filter_order = fltr_coef.length;
+let y = [];
+let tmp = [];
+
+for(let count = 0; count<buffer_size; count++) {
+    tmp.push(iq[0][count]+iq[1][count]);
+}
+
+/*
+if(count>filter_order)
+{
+    y[count] = fir_filter(tmp, fltr_coef);
+    tmp.shift();
+}
+else
+{
+    y[count] = tmp[count];
+}
+*/
+y = tmp;
+
+return y;
+}
+
+
+//acho que o hilbert não era realmente necessário
+/* Código do matlab para referência:
+function [y_USB_demodulated] = USB_IQ_Demod(y, b1, b2)
+    y_USB_demodulated = 0;
+    %b1 = fir1(2, (fc+18000)/fs);
+    y_USB_demodulated = filter(b1, 1, y);
+    y_USB_demodulated = y_USB_demodulated./abs(y_USB_demodulated);
+    y_USB_demodulated = real(y_USB_demodulated) + imag(hilbert(imag(y_USB_demodulated)));
+    %b2 = fir1(2, 18000/fs);
+    y_USB_demodulated = filter(b2, 1, y_USB_demodulated);
+end
+*/
+
+},{"../auxiliary":1}],7:[function(require,module,exports){
+const {amiqdemod, fmiqdemod, lsbiqdemod, usbiqdemod} = require('../../demodulators');
+
 const playButton = document.querySelector('button');
 
 // Create AudioContext and buffer source
@@ -188,7 +342,7 @@ playButton.onclick = function() {
 }
 
 
-},{"../../demodulators/fmiqdemod.js":2}],4:[function(require,module,exports){
+},{"../../demodulators":4}],8:[function(require,module,exports){
 'use strict';
 
 function FFT(size) {
@@ -697,7 +851,7 @@ FFT.prototype._singleRealTransform4 = function _singleRealTransform4(outOff,
   out[outOff + 7] = FDi;
 };
 
-},{}],5:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -883,7 +1037,7 @@ exports.FFTConvolution = FFTConvolution;
 exports.directConvolution = directConvolution;
 exports.fftConvolution = fftConvolution;
 
-},{"fft.js":4,"next-power-of-two":6}],6:[function(require,module,exports){
+},{"fft.js":8,"next-power-of-two":10}],10:[function(require,module,exports){
 module.exports = nextPowerOfTwo
 
 function nextPowerOfTwo (n) {
@@ -896,4 +1050,4 @@ function nextPowerOfTwo (n) {
   n |= n >> 16
   return n+1
 }
-},{}]},{},[3]);
+},{}]},{},[7]);

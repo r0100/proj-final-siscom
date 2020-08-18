@@ -1,13 +1,14 @@
 'use strict'
 
-if(typeof module!=='undefined' && typeof module.exports!=='undefined') {
-	module.exports = amiqdemod;
-	let aux = require('../auxiliary');
+//let aux = require('../auxiliary'); //não é mais necessário pois usaremos a API WebAudio
+
+module.exports = {
+	iqdemod: amiqdemod
 }
 
 function amiqdemod(iq, fltr_coef)
 {
-	let min = 0;
+	let offset = 0;
 	let buffer_size = iq[0].length;
 	let filter_order = fltr_coef.length;
 	let y = [];
@@ -20,6 +21,7 @@ function amiqdemod(iq, fltr_coef)
 
 		tmp.push(Math.sqrt(i*i + q*q)); //tira a magnitude da amostra IQ
 
+		/*
 		//filtro
 		if(count>filter_order)
 		{
@@ -30,12 +32,14 @@ function amiqdemod(iq, fltr_coef)
 		{
 			y[count] = tmp[count];
 		}
-
 		min = (min<y[count])?min:y[count]; //toma o menor valor do sinal 
+		*/
+		offset += y[count];
 	}
 
+	offset /= buffer_size;
 	for(let count = 0; count<buffer_size; count++)
-		y[count]-=min; //retira o menor valor encontrado, de forma a tirar o offset sem tornar o sinal negativo
+		y[count]-=offset; //retira o offset do sinal
 
 	return y;
 }
