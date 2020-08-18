@@ -4,7 +4,7 @@ let aux = require("../auxiliary");
 
 
 module.exports = {
-    usbiqdemod: usbiqdemod
+    iqdemod: usbiqdemod
 };
 
 function usbiqdemod(iq, fltr_coef) {
@@ -28,7 +28,7 @@ else
     y[count] = tmp[count];
 }
 */
-y[count] = tmp[count];
+y = tmp;
 
 return y;
 }

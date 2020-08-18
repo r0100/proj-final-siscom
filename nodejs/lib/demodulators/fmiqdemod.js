@@ -7,7 +7,7 @@ let fm_filter = [0.0005, -0.0017, 0.0032, -0.0052, 0.0079, -0.0115, 0.0162, -0.0
 -0.0162, 0.0115, -0.0079, 0.0052, -0.0032, 0.0017, -0.0005];
 
 module.exports = {
-    fmiqdemod: fmiqdemod
+    iqdemod: fmiqdemod
 };
 
 function fmiqdemod(iq, fltr_coef) {

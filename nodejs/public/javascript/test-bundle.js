@@ -34,6 +34,10 @@ function wavreader(path)
 
 //let aux = require('../auxiliary'); //não é mais necessário pois usaremos a API WebAudio
 
+module.exports = {
+	iqdemod: amiqdemod
+}
+
 function amiqdemod(iq, fltr_coef)
 {
 	let offset = 0;
@@ -91,7 +95,7 @@ let fm_filter = [0.0005, -0.0017, 0.0032, -0.0052, 0.0079, -0.0115, 0.0162, -0.0
 -0.0162, 0.0115, -0.0079, 0.0052, -0.0032, 0.0017, -0.0005];
 
 module.exports = {
-    fmiqdemod: fmiqdemod
+    iqdemod: fmiqdemod
 };
 
 function fmiqdemod(iq, fltr_coef) {
@@ -161,7 +165,7 @@ module.exports = {
 let aux = require("../auxiliary");
 
 module.exports = {
-    lsbiqdemod: lsbiqdemod
+    iqdemod: lsbiqdemod
 };
 
 function lsbiqdemod(iq, fltr_coef) {
@@ -183,7 +187,7 @@ else {
     y[count] = tmp[count];
 }
 */
-y[count] = tmp[count];
+y = tmp;
 
 return y;
 }
@@ -208,7 +212,7 @@ let aux = require("../auxiliary");
 
 
 module.exports = {
-    usbiqdemod: usbiqdemod
+    iqdemod: usbiqdemod
 };
 
 function usbiqdemod(iq, fltr_coef) {
@@ -232,7 +236,7 @@ else
     y[count] = tmp[count];
 }
 */
-y[count] = tmp[count];
+y = tmp;
 
 return y;
 }

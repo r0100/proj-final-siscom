@@ -3,7 +3,7 @@
 let aux = require("../auxiliary");
 
 module.exports = {
-    lsbiqdemod: lsbiqdemod
+    iqdemod: lsbiqdemod
 };
 
 function lsbiqdemod(iq, fltr_coef) {
@@ -25,7 +25,7 @@ else {
     y[count] = tmp[count];
 }
 */
-y[count] = tmp[count];
+y = tmp;
 
 return y;
 }

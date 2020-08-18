@@ -2,6 +2,10 @@
 
 //let aux = require('../auxiliary'); //não é mais necessário pois usaremos a API WebAudio
 
+module.exports = {
+	iqdemod: amiqdemod
+}
+
 function amiqdemod(iq, fltr_coef)
 {
 	let offset = 0;

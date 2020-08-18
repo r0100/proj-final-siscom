@@ -18,7 +18,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
 			switch(event.target.id) {
 				case 'onoff':
-					aump.playPause();
+					aump.playPause(event.target.value, info.usr_cfg.vol);
+					break;
+				case 'vol':
+					aump.updateVolume(event.target.value);
+					break;
+				case 'dmd':
+					aump.updateDemod(event.target.value);
+					break;
+				case 'filt':
+					aump.updateFilter(event.target.value);
+					break;
 			}
 		}
 
