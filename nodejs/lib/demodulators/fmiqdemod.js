@@ -1,15 +1,15 @@
 'use strict'
 
-let aux;
+let aux = require("../auxiliary");
 let cnv = require("ml-convolution");
 let fm_filter = [0.0005, -0.0017, 0.0032, -0.0052, 0.0079, -0.0115, 0.0162, -0.0223, 0.0302, -0.0406, 0.0548, -0.0752, 
 0.1077, -0.1699, 0.3502, 0, -0.3502, 0.1699, -0.1077, 0.0752, -0.0548, 0.0406, -0.0302, 0.0223,
 -0.0162, 0.0115, -0.0079, 0.0052, -0.0032, 0.0017, -0.0005];
 
-if(typeof module!== 'undefined' && typeof module.exports !== 'undefined') {
+/* if(typeof module!== 'undefined' && typeof module.exports !== 'undefined') {
 	module.exports = fmiqdemod;
 	aux = require("../auxiliary");
-}
+} */
 
 module.exports = {
     fmiqdemod: function(iq, fltr_coef)

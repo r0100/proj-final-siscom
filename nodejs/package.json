@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "description": "Projeto final da disciplina de sistemas de comunicação",
   "main": "index.js",
-  "scripts": {},
+  "scripts": {
+    "build-server": "npx browserify ./lib/frontend/test/ -o ./public/javascript/test-bundle.js && npx browserify ./lib/frontend/index/ -o ./public/javascript/index-bundle.js"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/r0100/proj-final-siscom.git"
@@ -16,6 +18,7 @@
   },
   "homepage": "https://github.com/r0100/proj-final-siscom#readme",
   "dependencies": {
+    "browserify": "^16.5.2",
     "express": "^4.17.1",
     "install": "^0.13.0",
     "ml-convolution": "^2.0.0",

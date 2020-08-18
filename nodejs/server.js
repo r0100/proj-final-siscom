@@ -4,6 +4,7 @@ const http = require("http");
 const fs = require("fs");
 const express = require('express');
 const getStat = require('util').promisify(fs.stat);
+const path = require('path')
 
 const aux = require("./lib/server-auxiliary");
 
@@ -11,7 +12,7 @@ const aux = require("./lib/server-auxiliary");
 //const URL_ADDR = 'proj-final-siscom.herokuapp.com';
 const PORT = process.env.PORT||5000;
 const URL_ADDR = '127.0.0.1:'+PORT;
-const AUDIO_FILE = './audio/audio.wav';
+const AUDIO_FILE = './public/audios/audio.wav';
 const AUX_LIB = './lib/auxiliary.js'
 const AM_LIB = './lib/demodulators/amiqdemod.js';
 const FM_LIB = './lib/demodulators/fmiqdemod.js'
@@ -21,13 +22,18 @@ const USB_LIB = './lib/demodulators/usbiqdemod.js'
 
 const app = express();
 
-app.use(express.static('interface'));
+app.use(express.static('public'));
+
+app.get('/', (req, res) => {
+	res.sendFile(path.join(__dirname, 'public/html/index.html'));
+})
 
 app.get('/audio', async (req, res) => {
-	const stat = await getStat(AUDIO_FILE);
+	//const stat = await getStat(AUDIO_FILE);
 	res.writeHead(200, {
 		'Content-Type': 'audio/wav',
-		'Content-Length': stat.size
+		//Since it is a stream, there is no information about length
+		//'Content-Length': stat.size
 	});
 
 	let stream = fs.createReadStream(AUDIO_FILE);
@@ -35,7 +41,15 @@ app.get('/audio', async (req, res) => {
 	stream.pipe(res);
 });
 
-app.get('/auxiliary.js', (req, res) => {
+app.get('/test', (req, res) => {
+	res.sendFile(path.join(__dirname, 'public/html/test.html'));
+})
+
+//Estes endpoints não serão mais necessários
+//Pois para o js de cada pagina será montado usando require
+//e construido com o browserify
+
+/* app.get('/auxiliary.js', (req, res) => {
 	res.writeHead(200, {
 		'Content-Type': 'text/javascript'
 	});
@@ -50,7 +64,7 @@ app.get('/amiqdemod.js', (req, res) => {
 	res.write(fs.readFileSync(AM_LIB));
 	res.end();
 });
-
+ */
 
 app.listen(PORT, () => {
 	console.log('Server working at port ' + PORT);
