@@ -1,4 +1,5 @@
-const  fmiqdemod  = require('../../demodulators/fmiqdemod.js'); 
+const {amiqdemod, fmiqdemod, lsbiqdemod, usbiqdemod} = require('../../demodulators');
+
 const playButton = document.querySelector('button');
 
 // Create AudioContext and buffer source

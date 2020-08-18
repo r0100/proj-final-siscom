@@ -6,48 +6,45 @@ let fm_filter = [0.0005, -0.0017, 0.0032, -0.0052, 0.0079, -0.0115, 0.0162, -0.0
 0.1077, -0.1699, 0.3502, 0, -0.3502, 0.1699, -0.1077, 0.0752, -0.0548, 0.0406, -0.0302, 0.0223,
 -0.0162, 0.0115, -0.0079, 0.0052, -0.0032, 0.0017, -0.0005];
 
-/* if(typeof module!== 'undefined' && typeof module.exports !== 'undefined') {
-	module.exports = fmiqdemod;
-	aux = require("../auxiliary");
-} */
-
 module.exports = {
-    fmiqdemod: function(iq, fltr_coef)
-    {
-        let buffer_size = iq[0].length;
-        let y = [];
-        let tmp = [];
-        let min = 0;
-        let i_conv = cnv.fftConvolution(iq[0], fm_filter);
-        let q_conv = cnv.fftConvolution(iq[1], fm_filter);
-        let filter_order = fltr_coef.length;
-
-
-        for(let count = 0; count<buffer_size; count++)
-        {
-            let i = iq[0][count];
-            let q = iq[1][count];
-
-            tmp.push((i*q_conv[count] - q*i_conv[count])/(i*i + q*q));
-
-            if(count>filter_order)
-            {
-                y[count] = aux.fir_filter(tmp, fltr_coef);
-                tmp.shift();
-            }
-            else
-                y[count] = tmp[count];
-
-            min = (min<y[count])?min:y[count]; //toma o menor valor do sinal 
-
-        }
-
-        for(let count = 0; count<buffer_size; count++)
-            y[count]-=min; //retira o menor valor encontrado, de forma a tirar o offset sem tornar o sinal negativo 
-
-        return y;
-    }
+    fmiqdemod: fmiqdemod
 };
+
+function fmiqdemod(iq, fltr_coef) {
+let buffer_size = iq[0].length;
+let y = [];
+let tmp = [];
+let offset = 0;
+let i_conv = cnv.fftConvolution(iq[0], fm_filter);
+let q_conv = cnv.fftConvolution(iq[1], fm_filter);
+let filter_order = fltr_coef.length;
+
+
+for(let count = 0; count<buffer_size; count++)
+{
+    let i = iq[0][count];
+    let q = iq[1][count];
+
+    tmp.push((i*q_conv[count] - q*i_conv[count])/(i*i + q*q));
+
+    if(count>filter_order)
+    {
+	y[count] = aux.fir_filter(tmp, fltr_coef);
+	tmp.shift();
+    }
+    else
+	y[count] = tmp[count];
+
+    offset += y[count]; //toma o offset do sinal
+}
+
+offset /= buffer_size;
+for(let count = 0; count<buffer_size; count++)
+    y[count]-=offset;
+
+return y;
+}
+
 
 /* Código do matlab para referência:
 function [y_FM_demodulated] = FM_IQ_Demod(y, b1, b2)

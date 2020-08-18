@@ -10,6 +10,15 @@ let usr_cfg = {
     flt: true,
 };
 
+module.exports = {
+	usr_cfg: usr_cfg,
+	returnInfoText: returnInfoText,
+	printAll: printAll,
+	initInfo: initInfo,
+	updateInfoText: updateInfoText,
+	sendServer: sendServer
+}
+
 function returnInfoText(code, value) {
 	let text = "";
 	switch(code) {
