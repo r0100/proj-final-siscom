@@ -19,6 +19,8 @@ const FM_LIB = './lib/demodulators/fmiqdemod.js'
 const LSB_LIB = './lib/demodulators/lsbiqdemod.js'
 const USB_LIB = './lib/demodulators/usbiqdemod.js'
 
+const {fork} = require('child_process');
+
 
 const app = express();
 
@@ -30,15 +32,26 @@ app.get('/', (req, res) => {
 
 app.get('/audio', async (req, res) => {
 	//const stat = await getStat(AUDIO_FILE);
-	res.writeHead(200, {
+	res.writeHead(209, {
 		'Content-Type': 'audio/wav',
 		//Since it is a stream, there is no information about length
 		//'Content-Length': stat.size
 	});
 
-	let stream = fs.createReadStream(AUDIO_FILE);
+	//let stream = fs.createReadStream(AUDIO_FILE);
 	///stream.on('end', () => console.log('Fim do arquivo'));
-	stream.pipe(res);
+	//stream.pipe(res);
+
+	const forked = fork('./lib/stream/continuous-stream.js');
+
+	console.log('audio')
+	forked.on('message', msg => {
+		console.log(msg)
+		res.write(Buffer(msg.data))
+	})
+
+
+
 });
 
 app.get('/test', (req, res) => {
