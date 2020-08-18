@@ -38,8 +38,8 @@ function initAudio() {
 	volume = ctx.createGain();
 	filter.type = 'lowpass';
 	filter.gain.value = 1;
-	filter.frequency.value = NO_FILTER;
-	volume.gain.setValueAtTime(0.5, ctx.currentTime);
+	filter.frequency.value = LPF;
+	volume.gain.setValueAtTime(0, ctx.currentTime);
 
 	function getAudio() {
 		request = new XMLHttpRequest();
@@ -82,8 +82,8 @@ function initAudio() {
 			default:
 				y = iq[0]; //pegando um dos canais para manter a saída mono
 		}
-		console.log('Vetor de saída: ');
-		console.log(y);
+		//console.log('Vetor de saída: ');
+		//console.log(y);
 		let outData = [outputBuffer.getChannelData(0), outputBuffer.getChannelData(1)];
 		for(let i = 0; i<outData[0].length; i++) {
 			outData[0][i] = y[i];
@@ -93,13 +93,15 @@ function initAudio() {
 
 	getAudio();
 
-	source.connect(demod).connect(filter).connect(ctx.destination);
+	source.connect(demod).connect(filter).connect(volume).connect(ctx.destination);
 	source.start();
 
 	source.onended = function() {
 		source.disconnect();
 		demod.disconnect();
 		filter.disconnect();
+		volume.disconnect();
+		initAudio();
 	}
 
 }

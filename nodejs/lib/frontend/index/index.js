@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
 				case 'dmd':
 					aump.updateDemod(event.target.value);
 					break;
-				case 'filt':
+				case 'flt':
 					aump.updateFilter(event.target.value);
 					break;
 			}
