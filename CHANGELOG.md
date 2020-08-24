@@ -1,3 +1,5 @@
+Short hash:63deaef<br/>Author: r0100 <lvinicius15@gmail.com><br/>Date: 2020-08-24 18:56:44 -0300<br/> Troca da filtragem de ruídos pelo Biquad Filter da API WebAudio para a implementação de filtro FIR feita anteriormente dentro do próprio projeto. <br/><br/>
+Short hash:e94697e<br/>Author: r0100 <lvinicius15@gmail.com><br/>Date: 2020-08-24 09:32:13 -0300<br/> Correção de formatação <br/><br/>
 Short hash:83b69af<br/>Author: r0100 <lvinicius15@gmail.com><br/>Date: 2020-08-24 09:28:38 -0300<br/> Correção de formatação <br/><br/>
 Short hash:9278ae8<br/>Author: r0100 <lvinicius15@gmail.com><br/>Date: 2020-08-24 09:24:06 -0300<br/> Correção de formatação <br/><br/>
 Short hash:0086310<br/>Author: r0100 <lvinicius15@gmail.com><br/>Date: 2020-08-24 09:19:04 -0300<br/> Melhorando a formatação do changelog <br/><br/>

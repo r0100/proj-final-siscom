@@ -11,36 +11,39 @@ module.exports = {
 };
 
 function fmiqdemod(iq, fltr_coef) {
-let buffer_size = iq[0].length;
-let y = [];
-let tmp = [];
-let offset = 0;
-let i_conv = cnv.fftConvolution(iq[0], fm_filter);
-let q_conv = cnv.fftConvolution(iq[1], fm_filter);
-let filter_order = fltr_coef.length;
+	let buffer_size = iq[0].length;
+	let y = [];
+	let tmp = [];
+	let offset = 0;
+	
+	for(let count = 0; count<buffer_size; count++) {
+		let abs = Math.sqrt(iq[0][count]*iq[0][count] + iq[1][count]*iq[1][count]);
+		iq[0][count] /= abs;
+		iq[1][count] /= abs;
+	}
 
+	let i_conv = cnv.fftConvolution(iq[0], fm_filter);
+	let q_conv = cnv.fftConvolution(iq[1], fm_filter);
+	let filter_order = fltr_coef.length;
 
-for(let count = 0; count<buffer_size; count++) {
-    let i = iq[0][count];
-    let q = iq[1][count];
+	for(let count = 0; count<buffer_size; count++) {
+		let i = iq[0][count];
+		let q = iq[1][count];
+		tmp.push((i*q_conv[count] - q*i_conv[count])/(i*i + q*q)/5);
+		//tmp.push((i*q_conv[count] - q*i_conv[count])/10);
+		if(count>filter_order) {
+			y[count] = aux.fir_filter(tmp, fltr_coef);
+			tmp.shift();
+		} else {
+			y[count] = tmp[count];
+		}
+		offset += y[count]/buffer_size; //toma o offset do sinal
+	}
 
-    tmp.push((i*q_conv[count] - q*i_conv[count])/(i*i + q*q));
-    //tmp.push((i*q_conv[count] - q*i_conv[count]));
+	for(let count = 0; count<buffer_size; count++)
+		y[count]-=offset;
 
-    if(count>filter_order) {
-	y[count] = aux.fir_filter(tmp, fltr_coef);
-	tmp.shift();
-    }
-    else
-	y[count] = tmp[count];
-
-    offset += y[count]/buffer_size; //toma o offset do sinal
-}
-
-for(let count = 0; count<buffer_size; count++)
-    y[count]-=offset;
-
-return y;
+	return y;
 }
 
 

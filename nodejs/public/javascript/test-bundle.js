@@ -45,29 +45,22 @@ function amiqdemod(iq, fltr_coef)
 	let filter_order = fltr_coef.length;
 	let y = [];
 	let tmp = [];
-
 	for(let count = 0; count<buffer_size; count++) { 
 		let i = iq[0][count];
 		let q = iq[1][count];
-
 		tmp.push(Math.sqrt(i*i + q*q)); //tira a magnitude da amostra IQ
-
 		//filtro
 		if(count>filter_order) {
 			y[count] = aux.fir_filter(tmp, fltr_coef);
 			tmp.shift();
-		}
-		else {
+		} else {
 			y[count] = tmp[count];
 		}
 		//min = (min<y[count])?min:y[count]; //toma o menor valor do sinal 
-
 		offset += y[count]/buffer_size;
 	}
-
 	for(let count = 0; count<buffer_size; count++)
 		y[count]-=offset; //retira o offset do sinal
-
 	return y;
 }
 
@@ -94,36 +87,39 @@ module.exports = {
 };
 
 function fmiqdemod(iq, fltr_coef) {
-let buffer_size = iq[0].length;
-let y = [];
-let tmp = [];
-let offset = 0;
-let i_conv = cnv.fftConvolution(iq[0], fm_filter);
-let q_conv = cnv.fftConvolution(iq[1], fm_filter);
-let filter_order = fltr_coef.length;
+	let buffer_size = iq[0].length;
+	let y = [];
+	let tmp = [];
+	let offset = 0;
+	
+	for(let count = 0; count<buffer_size; count++) {
+		let abs = Math.sqrt(iq[0][count]*iq[0][count] + iq[1][count]*iq[1][count]);
+		iq[0][count] /= abs;
+		iq[1][count] /= abs;
+	}
 
+	let i_conv = cnv.fftConvolution(iq[0], fm_filter);
+	let q_conv = cnv.fftConvolution(iq[1], fm_filter);
+	let filter_order = fltr_coef.length;
 
-for(let count = 0; count<buffer_size; count++) {
-    let i = iq[0][count];
-    let q = iq[1][count];
+	for(let count = 0; count<buffer_size; count++) {
+		let i = iq[0][count];
+		let q = iq[1][count];
+		tmp.push((i*q_conv[count] - q*i_conv[count])/(i*i + q*q)/5);
+		//tmp.push((i*q_conv[count] - q*i_conv[count])/10);
+		if(count>filter_order) {
+			y[count] = aux.fir_filter(tmp, fltr_coef);
+			tmp.shift();
+		} else {
+			y[count] = tmp[count];
+		}
+		offset += y[count]/buffer_size; //toma o offset do sinal
+	}
 
-    //tmp.push((i*q_conv[count] - q*i_conv[count])/(i*i + q*q));
-    tmp.push((i*q_conv[count] - q*i_conv[count]));
+	for(let count = 0; count<buffer_size; count++)
+		y[count]-=offset;
 
-    if(count>filter_order) {
-	y[count] = aux.fir_filter(tmp, fltr_coef);
-	tmp.shift();
-    }
-    else
-	y[count] = tmp[count];
-
-    offset += y[count]/buffer_size; //toma o offset do sinal
-}
-
-for(let count = 0; count<buffer_size; count++)
-    y[count]-=offset;
-
-return y;
+	return y;
 }
 
 
@@ -162,24 +158,20 @@ module.exports = {
 };
 
 function lsbiqdemod(iq, fltr_coef) {
-let buffer_size = iq[0].length;
-let filter_order = fltr_coef.length;
-let y = [];
-let tmp = [];
-
-for(let count = 0; count<buffer_size; count++) {
-    tmp.push(iq[0][count]-iq[1][count]);
-
-    if(count>filter_order) {
-        y[count] = aux.fir_filter(tmp, fltr_coef);
-        tmp.shift();
-    }
-    else {
-        y[count] = tmp[count];
-    }
-}
-
-return y;
+	let buffer_size = iq[0].length;
+	let filter_order = fltr_coef.length;
+	let y = [];
+	let tmp = [];
+	for(let count = 0; count<buffer_size; count++) {
+		tmp.push(iq[0][count]-iq[1][count]);
+		if(count>filter_order) {
+			y[count] = aux.fir_filter(tmp, fltr_coef);
+			tmp.shift();
+		} else {
+			y[count] = tmp[count];
+		}
+	}
+	return y;
 }
 
 //acho que o hilbert não era realmente necessário
@@ -206,24 +198,20 @@ module.exports = {
 };
 
 function usbiqdemod(iq, fltr_coef) {
-let buffer_size = iq[0].length;
-let filter_order = fltr_coef.length;
-let y = [];
-let tmp = [];
-
-for(let count = 0; count<buffer_size; count++) {
-    tmp.push(iq[0][count]+iq[1][count]);
-
-if(count>filter_order) {
-    y[count] = aux.fir_filter(tmp, fltr_coef);
-    tmp.shift();
-}
-else {
-    y[count] = tmp[count];
-}
-
-}
-return y;
+	let buffer_size = iq[0].length;
+	let filter_order = fltr_coef.length;
+	let y = [];
+	let tmp = [];
+	for(let count = 0; count<buffer_size; count++) {
+		tmp.push(iq[0][count]+iq[1][count]);
+		if(count>filter_order) {
+			y[count] = aux.fir_filter(tmp, fltr_coef);
+			tmp.shift();
+		} else {
+			y[count] = tmp[count];
+		}
+	}
+	return y;
 }
 
 

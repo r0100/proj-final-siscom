@@ -68,23 +68,24 @@ function initAudio() {
 
 		switch(demodMethod) {
 			case 'am':
-				console.log('am');
+				//console.log('am');
 				y = am.iqdemod(iq, filter);
 				break;
 			case 'fm':
-				console.log('fm');
+				//console.log('fm');
 				y = fm.iqdemod(iq, filter);
 				break;
 			case 'lsb':
-				console.log('lsb');
+				//console.log('lsb');
 				y = lsb.iqdemod(iq, filter);
 				break;
 			case 'usb':
-				console.log('usb');
+				//console.log('usb');
 				y = usb.iqdemod(iq, filter);
 				break;
 			default:
 				y = no.iqdemod(iq, filter);
+				break;
 		}
 		//console.log('Vetor de saída: ');
 		//console.log(y);
@@ -147,8 +148,7 @@ function updateFilter(fltCond) {
 	if(fltCond==='on') {
 		//filter.frequency.value = LPF;
 		filter = LPF
-	}
-	else {
+	} else {
 		//filter.frequency.value = NO_FILTER;
 		filter = NO_FILTER;
 	}
