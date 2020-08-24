@@ -7,7 +7,7 @@ const usb = require('../../demodulators/usbiqdemod.js');
 
 const AUDIO = '/audio';
 const LPF = 16000;
-const NO_FILTER = 25000;
+const NO_FILTER = 22050;
 const BUFFER_SIZE = 4096;
 
 let ctx;
@@ -39,7 +39,7 @@ function initAudio() {
 	filter.type = 'lowpass';
 	filter.gain.value = 1;
 	filter.frequency.value = LPF;
-	volume.gain.setValueAtTime(0, ctx.currentTime);
+	volume.gain.setValueAtTime(0.5, ctx.currentTime);
 
 	function getAudio() {
 		request = new XMLHttpRequest();
@@ -114,15 +114,15 @@ function playPause(onoff, vol) {
 	}
 	if(onoff==='on') {
 		updateVolume(vol);
-	}
-	else {
+	} else {
 		volume.gain.setValueAtTime(0, ctx.currentTime);
 	}
 }
 
 function updateVolume(vol) {
 	console.log('Novo valor de volume: ' + vol);
-	volume.gain.setValueAtTime(Number(vol)/100, ctx.currentTime);
+	if(volume)
+		volume.gain.setValueAtTime(Number(vol)/100, ctx.currentTime);
 }
 
 function updateDemod(method) {
@@ -132,6 +132,9 @@ function updateDemod(method) {
 
 function updateFilter(fltCond) {
 	console.log('Filtro em ' + fltCond);
+	if(!filtro)
+		return;
+
 	if(fltCond==='on') {
 		filter.frequency.value = LPF;
 	}

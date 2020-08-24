@@ -147,15 +147,7 @@ function [y_FM_demodulated] = FM_IQ_Demod(y, b1, b2)
 end
 */
 
-},{"../auxiliary":1,"ml-convolution":11}],4:[function(require,module,exports){
-module.exports = {
-    ...require('./amiqdemod'),
-    ...require('./fmiqdemod'),
-    ...require('./lsbiqdemod'),
-    ...require('./usbiqdemod'),
-};
-
-},{"./amiqdemod":2,"./fmiqdemod":3,"./lsbiqdemod":5,"./usbiqdemod":6}],5:[function(require,module,exports){
+},{"../auxiliary":1,"ml-convolution":10}],4:[function(require,module,exports){
 'use strict'
 
 let aux = require("../auxiliary");
@@ -201,7 +193,7 @@ function [y_LSB_demodulated] = LSB_IQ_Demod(y, b1, b2)
 end
 */
 
-},{"../auxiliary":1}],6:[function(require,module,exports){
+},{"../auxiliary":1}],5:[function(require,module,exports){
 'use strict'
 
 let aux = require("../auxiliary");
@@ -251,7 +243,7 @@ function [y_USB_demodulated] = USB_IQ_Demod(y, b1, b2)
 end
 */
 
-},{"../auxiliary":1}],7:[function(require,module,exports){
+},{"../auxiliary":1}],6:[function(require,module,exports){
 const am = require('../../demodulators/amiqdemod.js');
 const fm = require('../../demodulators/fmiqdemod.js');
 const lsb = require('../../demodulators/lsbiqdemod.js');
@@ -261,7 +253,7 @@ const usb = require('../../demodulators/usbiqdemod.js');
 
 const AUDIO = '/audio';
 const LPF = 16000;
-const NO_FILTER = 25000;
+const NO_FILTER = 22050;
 const BUFFER_SIZE = 4096;
 
 let ctx;
@@ -293,7 +285,7 @@ function initAudio() {
 	filter.type = 'lowpass';
 	filter.gain.value = 1;
 	filter.frequency.value = LPF;
-	volume.gain.setValueAtTime(0, ctx.currentTime);
+	volume.gain.setValueAtTime(0.5, ctx.currentTime);
 
 	function getAudio() {
 		request = new XMLHttpRequest();
@@ -368,15 +360,15 @@ function playPause(onoff, vol) {
 	}
 	if(onoff==='on') {
 		updateVolume(vol);
-	}
-	else {
+	} else {
 		volume.gain.setValueAtTime(0, ctx.currentTime);
 	}
 }
 
 function updateVolume(vol) {
 	console.log('Novo valor de volume: ' + vol);
-	volume.gain.setValueAtTime(Number(vol)/100, ctx.currentTime);
+	if(volume)
+		volume.gain.setValueAtTime(Number(vol)/100, ctx.currentTime);
 }
 
 function updateDemod(method) {
@@ -386,6 +378,9 @@ function updateDemod(method) {
 
 function updateFilter(fltCond) {
 	console.log('Filtro em ' + fltCond);
+	if(!filtro)
+		return;
+
 	if(fltCond==='on') {
 		filter.frequency.value = LPF;
 	}
@@ -394,7 +389,7 @@ function updateFilter(fltCond) {
 	}
 }
 
-},{"../../demodulators/amiqdemod.js":2,"../../demodulators/fmiqdemod.js":3,"../../demodulators/lsbiqdemod.js":5,"../../demodulators/usbiqdemod.js":6}],8:[function(require,module,exports){
+},{"../../demodulators/amiqdemod.js":2,"../../demodulators/fmiqdemod.js":3,"../../demodulators/lsbiqdemod.js":4,"../../demodulators/usbiqdemod.js":5}],7:[function(require,module,exports){
 'use strict'
 
 let usr_cfg = {
@@ -472,16 +467,13 @@ function sendServer(cond) {
 	ajax.send(JSON.stringify(usr_cfg));
 }
 
-},{}],9:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 const aump = require('./audio-manip.js');
 const info = require('./interface-update.js');
-const { fir_filter } = require('../../auxiliary')
-const {amiqdemod, fmiqdemod, lsbiqdemod, usbiqdemod} = require('../../demodulators');
 
 document.addEventListener('DOMContentLoaded', () => {
 	//código relacionado com a parte do painel no topo da página
 	info.initInfo();
-	aump.initAudio();
 
 	let infoElementIds = ['on-off-sect', 'vol', 'frq', 'bndeq', 'bnddr', 'dmd-sect', 'flt'];
 	infoElementIds.forEach((id) => {
@@ -525,7 +517,7 @@ function getById(id) {
 	return document.getElementById(id);
 }
 
-},{"../../auxiliary":1,"../../demodulators":4,"./audio-manip.js":7,"./interface-update.js":8}],10:[function(require,module,exports){
+},{"./audio-manip.js":6,"./interface-update.js":7}],9:[function(require,module,exports){
 'use strict';
 
 function FFT(size) {
@@ -1034,7 +1026,7 @@ FFT.prototype._singleRealTransform4 = function _singleRealTransform4(outOff,
   out[outOff + 7] = FDi;
 };
 
-},{}],11:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -1220,7 +1212,7 @@ exports.FFTConvolution = FFTConvolution;
 exports.directConvolution = directConvolution;
 exports.fftConvolution = fftConvolution;
 
-},{"fft.js":10,"next-power-of-two":12}],12:[function(require,module,exports){
+},{"fft.js":9,"next-power-of-two":11}],11:[function(require,module,exports){
 module.exports = nextPowerOfTwo
 
 function nextPowerOfTwo (n) {
@@ -1233,4 +1225,4 @@ function nextPowerOfTwo (n) {
   n |= n >> 16
   return n+1
 }
-},{}]},{},[9]);
+},{}]},{},[8]);
