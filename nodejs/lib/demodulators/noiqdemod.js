@@ -3,28 +3,28 @@
 let aux = require("../auxiliary");
 
 module.exports = {
-    iqdemod: lsbiqdemod
+    iqdemod: noiqdemod
 };
 
-function lsbiqdemod(iq, fltr_coef) {
-let buffer_size = iq[0].length;
-let filter_order = fltr_coef.length;
-let y = [];
-let tmp = [];
+function noiqdemod(iq, fltr_coef) {
+    let buffer_size = iq[0].length;
+    let filter_order = fltr_coef.length;
+    let y = [];
+    let tmp = [];
 
-for(let count = 0; count<buffer_size; count++) {
-    tmp.push(iq[0][count]-iq[1][count]);
+    for(let count = 0; count<buffer_size; count++) {
+        tmp.push(iq[0][count]);
 
-    if(count>filter_order) {
-        y[count] = aux.fir_filter(tmp, fltr_coef);
-        tmp.shift();
-    }
-    else {
+        if(count>filter_order) {
+            y[count] = aux.fir_filter(tmp, fltr_coef);
+            tmp.shift();
+        }
+        else {
         y[count] = tmp[count];
+        }
     }
-}
 
-return y;
+    return y;
 }
 
 //acho que o hilbert não era realmente necessário

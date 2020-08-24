@@ -30,10 +30,9 @@ function amiqdemod(iq, fltr_coef)
 		}
 		//min = (min<y[count])?min:y[count]; //toma o menor valor do sinal 
 
-		offset += y[count];
+		offset += y[count]/buffer_size;
 	}
 
-	offset /= buffer_size;
 	for(let count = 0; count<buffer_size; count++)
 		y[count]-=offset; //retira o offset do sinal
 

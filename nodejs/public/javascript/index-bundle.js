@@ -62,10 +62,9 @@ function amiqdemod(iq, fltr_coef)
 		}
 		//min = (min<y[count])?min:y[count]; //toma o menor valor do sinal 
 
-		offset += y[count];
+		offset += y[count]/buffer_size;
 	}
 
-	offset /= buffer_size;
 	for(let count = 0; count<buffer_size; count++)
 		y[count]-=offset; //retira o offset do sinal
 
@@ -104,25 +103,23 @@ let q_conv = cnv.fftConvolution(iq[1], fm_filter);
 let filter_order = fltr_coef.length;
 
 
-for(let count = 0; count<buffer_size; count++)
-{
+for(let count = 0; count<buffer_size; count++) {
     let i = iq[0][count];
     let q = iq[1][count];
 
-    tmp.push((i*q_conv[count] - q*i_conv[count])/(i*i + q*q));
+    //tmp.push((i*q_conv[count] - q*i_conv[count])/(i*i + q*q));
+    tmp.push((i*q_conv[count] - q*i_conv[count]));
 
-    if(count>filter_order)
-    {
+    if(count>filter_order) {
 	y[count] = aux.fir_filter(tmp, fltr_coef);
 	tmp.shift();
     }
     else
 	y[count] = tmp[count];
 
-    offset += y[count]; //toma o offset do sinal
+    offset += y[count]/buffer_size; //toma o offset do sinal
 }
 
-offset /= buffer_size;
 for(let count = 0; count<buffer_size; count++)
     y[count]-=offset;
 
@@ -147,7 +144,7 @@ function [y_FM_demodulated] = FM_IQ_Demod(y, b1, b2)
 end
 */
 
-},{"../auxiliary":1,"ml-convolution":10}],4:[function(require,module,exports){
+},{"../auxiliary":1,"ml-convolution":11}],4:[function(require,module,exports){
 'use strict'
 
 let aux = require("../auxiliary");
@@ -164,18 +161,15 @@ let tmp = [];
 
 for(let count = 0; count<buffer_size; count++) {
     tmp.push(iq[0][count]-iq[1][count]);
-}
 
-/*
-if(count>filter_order) {
-    y[count] = fir_filter(tmp, fltr_coef);
-    tmp.shift();
+    if(count>filter_order) {
+        y[count] = aux.fir_filter(tmp, fltr_coef);
+        tmp.shift();
+    }
+    else {
+        y[count] = tmp[count];
+    }
 }
-else {
-    y[count] = tmp[count];
-}
-*/
-y = tmp;
 
 return y;
 }
@@ -198,6 +192,49 @@ end
 
 let aux = require("../auxiliary");
 
+module.exports = {
+    iqdemod: noiqdemod
+};
+
+function noiqdemod(iq, fltr_coef) {
+    let buffer_size = iq[0].length;
+    let filter_order = fltr_coef.length;
+    let y = [];
+    let tmp = [];
+
+    for(let count = 0; count<buffer_size; count++) {
+        tmp.push(iq[0][count]);
+
+        if(count>filter_order) {
+            y[count] = aux.fir_filter(tmp, fltr_coef);
+            tmp.shift();
+        }
+        else {
+        y[count] = tmp[count];
+        }
+    }
+
+    return y;
+}
+
+//acho que o hilbert não era realmente necessário
+/* Código do matlab para referência:
+function [y_LSB_demodulated] = LSB_IQ_Demod(y, b1, b2)
+    y_LSB_demodulated = 0;
+    %b1 = fir1(2, (fc+1000)/fs);
+    y_LSB_demodulated = filter(b1, 1, y);
+    y_LSB_demodulated = y_LSB_demodulated./abs(y_LSB_demodulated);
+    y_LSB_demodulated = real(y_LSB_demodulated) - imag(hilbert(imag(y_LSB_demodulated)));
+    %b2 = fir1(2, 18000/fs);
+    y_LSB_demodulated = filter(b2, 1, y_LSB_demodulated);
+end
+*/
+
+},{"../auxiliary":1}],6:[function(require,module,exports){
+'use strict'
+
+let aux = require("../auxiliary");
+
 
 module.exports = {
     iqdemod: usbiqdemod
@@ -211,21 +248,16 @@ let tmp = [];
 
 for(let count = 0; count<buffer_size; count++) {
     tmp.push(iq[0][count]+iq[1][count]);
-}
 
-/*
-if(count>filter_order)
-{
-    y[count] = fir_filter(tmp, fltr_coef);
+if(count>filter_order) {
+    y[count] = aux.fir_filter(tmp, fltr_coef);
     tmp.shift();
 }
-else
-{
+else {
     y[count] = tmp[count];
 }
-*/
-y = tmp;
 
+}
 return y;
 }
 
@@ -243,17 +275,21 @@ function [y_USB_demodulated] = USB_IQ_Demod(y, b1, b2)
 end
 */
 
-},{"../auxiliary":1}],6:[function(require,module,exports){
+},{"../auxiliary":1}],7:[function(require,module,exports){
 const am = require('../../demodulators/amiqdemod.js');
 const fm = require('../../demodulators/fmiqdemod.js');
 const lsb = require('../../demodulators/lsbiqdemod.js');
 const usb = require('../../demodulators/usbiqdemod.js');
+const no = require('../../demodulators/noiqdemod.js');
+const aux = require('../../auxiliary.js');
 
 'use strict'
 
 const AUDIO = '/audio';
-const LPF = 16000;
-const NO_FILTER = 22050;
+//const LPF = 16000;
+//const NO_FILTER = 22050;
+const LPF = aux.audio_filter;
+const NO_FILTER = [1, 0, 0];
 const BUFFER_SIZE = 4096;
 
 let ctx;
@@ -266,9 +302,6 @@ let demodMethod = 'nenhum';
 
 module.exports = {
 	ctx: ctx,
-	LPF: LPF,
-	NO_FILTER: NO_FILTER,
-	initAudio: initAudio,
 	playPause: playPause,
 	updateVolume: updateVolume,
 	updateDemod: updateDemod,
@@ -280,11 +313,14 @@ function initAudio() {
 	ctx = new AudioContext();
 	source = ctx.createBufferSource();
 	demod = ctx.createScriptProcessor(BUFFER_SIZE, 2, 2);
-	filter = ctx.createBiquadFilter();
+	//filter = ctx.createBiquadFilter();
 	volume = ctx.createGain();
+	/*
 	filter.type = 'lowpass';
 	filter.gain.value = 1;
 	filter.frequency.value = LPF;
+	*/
+	filter = LPF;
 	volume.gain.setValueAtTime(0.5, ctx.currentTime);
 
 	function getAudio() {
@@ -311,22 +347,22 @@ function initAudio() {
 		switch(demodMethod) {
 			case 'am':
 				console.log('am');
-				y = am.iqdemod(iq, [1]);
+				y = am.iqdemod(iq, filter);
 				break;
 			case 'fm':
 				console.log('fm');
-				y = fm.iqdemod(iq, [1]);
+				y = fm.iqdemod(iq, filter);
 				break;
 			case 'lsb':
 				console.log('lsb');
-				y = lsb.iqdemod(iq, [1]);
+				y = lsb.iqdemod(iq, filter);
 				break;
 			case 'usb':
 				console.log('usb');
-				y = usb.iqdemod(iq, [1]);
+				y = usb.iqdemod(iq, filter);
 				break;
 			default:
-				y = iq[0]; //pegando um dos canais para manter a saída mono
+				y = no.iqdemod(iq, filter);
 		}
 		//console.log('Vetor de saída: ');
 		//console.log(y);
@@ -340,7 +376,8 @@ function initAudio() {
 	getAudio();
 
 	source.loop = true;
-	source.connect(demod).connect(filter).connect(volume).connect(ctx.destination);
+	//source.connect(demod).connect(filter).connect(volume).connect(ctx.destination);
+	source.connect(demod).connect(volume).connect(ctx.destination);
 	source.start();
 	/*
 	source.onended = function() {
@@ -362,6 +399,10 @@ function playPause(onoff, vol) {
 		updateVolume(vol);
 	} else {
 		volume.gain.setValueAtTime(0, ctx.currentTime);
+		ctx = null;
+		volume = null;
+		source=null;
+		filter=null;
 	}
 }
 
@@ -378,18 +419,21 @@ function updateDemod(method) {
 
 function updateFilter(fltCond) {
 	console.log('Filtro em ' + fltCond);
-	if(!filtro)
+	if(!filter)
 		return;
 
 	if(fltCond==='on') {
-		filter.frequency.value = LPF;
+		//filter.frequency.value = LPF;
+		filter = LPF
 	}
 	else {
-		filter.frequency.value = NO_FILTER;
+		//filter.frequency.value = NO_FILTER;
+		filter = NO_FILTER;
 	}
+	console.log(filter);
 }
 
-},{"../../demodulators/amiqdemod.js":2,"../../demodulators/fmiqdemod.js":3,"../../demodulators/lsbiqdemod.js":4,"../../demodulators/usbiqdemod.js":5}],7:[function(require,module,exports){
+},{"../../auxiliary.js":1,"../../demodulators/amiqdemod.js":2,"../../demodulators/fmiqdemod.js":3,"../../demodulators/lsbiqdemod.js":4,"../../demodulators/noiqdemod.js":5,"../../demodulators/usbiqdemod.js":6}],8:[function(require,module,exports){
 'use strict'
 
 let usr_cfg = {
@@ -467,7 +511,7 @@ function sendServer(cond) {
 	ajax.send(JSON.stringify(usr_cfg));
 }
 
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 const aump = require('./audio-manip.js');
 const info = require('./interface-update.js');
 
@@ -517,7 +561,7 @@ function getById(id) {
 	return document.getElementById(id);
 }
 
-},{"./audio-manip.js":6,"./interface-update.js":7}],9:[function(require,module,exports){
+},{"./audio-manip.js":7,"./interface-update.js":8}],10:[function(require,module,exports){
 'use strict';
 
 function FFT(size) {
@@ -1026,7 +1070,7 @@ FFT.prototype._singleRealTransform4 = function _singleRealTransform4(outOff,
   out[outOff + 7] = FDi;
 };
 
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -1212,7 +1256,7 @@ exports.FFTConvolution = FFTConvolution;
 exports.directConvolution = directConvolution;
 exports.fftConvolution = fftConvolution;
 
-},{"fft.js":9,"next-power-of-two":11}],11:[function(require,module,exports){
+},{"fft.js":10,"next-power-of-two":12}],12:[function(require,module,exports){
 module.exports = nextPowerOfTwo
 
 function nextPowerOfTwo (n) {
@@ -1225,4 +1269,4 @@ function nextPowerOfTwo (n) {
   n |= n >> 16
   return n+1
 }
-},{}]},{},[8]);
+},{}]},{},[9]);

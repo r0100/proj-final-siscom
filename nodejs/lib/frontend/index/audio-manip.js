@@ -2,12 +2,16 @@ const am = require('../../demodulators/amiqdemod.js');
 const fm = require('../../demodulators/fmiqdemod.js');
 const lsb = require('../../demodulators/lsbiqdemod.js');
 const usb = require('../../demodulators/usbiqdemod.js');
+const no = require('../../demodulators/noiqdemod.js');
+const aux = require('../../auxiliary.js');
 
 'use strict'
 
 const AUDIO = '/audio';
-const LPF = 16000;
-const NO_FILTER = 22050;
+//const LPF = 16000;
+//const NO_FILTER = 22050;
+const LPF = aux.audio_filter;
+const NO_FILTER = [1, 0, 0];
 const BUFFER_SIZE = 4096;
 
 let ctx;
@@ -20,9 +24,6 @@ let demodMethod = 'nenhum';
 
 module.exports = {
 	ctx: ctx,
-	LPF: LPF,
-	NO_FILTER: NO_FILTER,
-	initAudio: initAudio,
 	playPause: playPause,
 	updateVolume: updateVolume,
 	updateDemod: updateDemod,
@@ -34,11 +35,14 @@ function initAudio() {
 	ctx = new AudioContext();
 	source = ctx.createBufferSource();
 	demod = ctx.createScriptProcessor(BUFFER_SIZE, 2, 2);
-	filter = ctx.createBiquadFilter();
+	//filter = ctx.createBiquadFilter();
 	volume = ctx.createGain();
+	/*
 	filter.type = 'lowpass';
 	filter.gain.value = 1;
 	filter.frequency.value = LPF;
+	*/
+	filter = LPF;
 	volume.gain.setValueAtTime(0.5, ctx.currentTime);
 
 	function getAudio() {
@@ -65,22 +69,22 @@ function initAudio() {
 		switch(demodMethod) {
 			case 'am':
 				console.log('am');
-				y = am.iqdemod(iq, [1]);
+				y = am.iqdemod(iq, filter);
 				break;
 			case 'fm':
 				console.log('fm');
-				y = fm.iqdemod(iq, [1]);
+				y = fm.iqdemod(iq, filter);
 				break;
 			case 'lsb':
 				console.log('lsb');
-				y = lsb.iqdemod(iq, [1]);
+				y = lsb.iqdemod(iq, filter);
 				break;
 			case 'usb':
 				console.log('usb');
-				y = usb.iqdemod(iq, [1]);
+				y = usb.iqdemod(iq, filter);
 				break;
 			default:
-				y = iq[0]; //pegando um dos canais para manter a saída mono
+				y = no.iqdemod(iq, filter);
 		}
 		//console.log('Vetor de saída: ');
 		//console.log(y);
@@ -94,7 +98,8 @@ function initAudio() {
 	getAudio();
 
 	source.loop = true;
-	source.connect(demod).connect(filter).connect(volume).connect(ctx.destination);
+	//source.connect(demod).connect(filter).connect(volume).connect(ctx.destination);
+	source.connect(demod).connect(volume).connect(ctx.destination);
 	source.start();
 	/*
 	source.onended = function() {
@@ -116,6 +121,10 @@ function playPause(onoff, vol) {
 		updateVolume(vol);
 	} else {
 		volume.gain.setValueAtTime(0, ctx.currentTime);
+		ctx = null;
+		volume = null;
+		source=null;
+		filter=null;
 	}
 }
 
@@ -132,13 +141,16 @@ function updateDemod(method) {
 
 function updateFilter(fltCond) {
 	console.log('Filtro em ' + fltCond);
-	if(!filtro)
+	if(!filter)
 		return;
 
 	if(fltCond==='on') {
-		filter.frequency.value = LPF;
+		//filter.frequency.value = LPF;
+		filter = LPF
 	}
 	else {
-		filter.frequency.value = NO_FILTER;
+		//filter.frequency.value = NO_FILTER;
+		filter = NO_FILTER;
 	}
+	console.log(filter);
 }

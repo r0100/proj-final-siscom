@@ -15,21 +15,16 @@ let tmp = [];
 
 for(let count = 0; count<buffer_size; count++) {
     tmp.push(iq[0][count]+iq[1][count]);
-}
 
-/*
-if(count>filter_order)
-{
-    y[count] = fir_filter(tmp, fltr_coef);
+if(count>filter_order) {
+    y[count] = aux.fir_filter(tmp, fltr_coef);
     tmp.shift();
 }
-else
-{
+else {
     y[count] = tmp[count];
 }
-*/
-y = tmp;
 
+}
 return y;
 }
 

@@ -62,10 +62,9 @@ function amiqdemod(iq, fltr_coef)
 		}
 		//min = (min<y[count])?min:y[count]; //toma o menor valor do sinal 
 
-		offset += y[count];
+		offset += y[count]/buffer_size;
 	}
 
-	offset /= buffer_size;
 	for(let count = 0; count<buffer_size; count++)
 		y[count]-=offset; //retira o offset do sinal
 
@@ -104,25 +103,23 @@ let q_conv = cnv.fftConvolution(iq[1], fm_filter);
 let filter_order = fltr_coef.length;
 
 
-for(let count = 0; count<buffer_size; count++)
-{
+for(let count = 0; count<buffer_size; count++) {
     let i = iq[0][count];
     let q = iq[1][count];
 
-    tmp.push((i*q_conv[count] - q*i_conv[count])/(i*i + q*q));
+    //tmp.push((i*q_conv[count] - q*i_conv[count])/(i*i + q*q));
+    tmp.push((i*q_conv[count] - q*i_conv[count]));
 
-    if(count>filter_order)
-    {
+    if(count>filter_order) {
 	y[count] = aux.fir_filter(tmp, fltr_coef);
 	tmp.shift();
     }
     else
 	y[count] = tmp[count];
 
-    offset += y[count]; //toma o offset do sinal
+    offset += y[count]/buffer_size; //toma o offset do sinal
 }
 
-offset /= buffer_size;
 for(let count = 0; count<buffer_size; count++)
     y[count]-=offset;
 
@@ -172,18 +169,15 @@ let tmp = [];
 
 for(let count = 0; count<buffer_size; count++) {
     tmp.push(iq[0][count]-iq[1][count]);
-}
 
-/*
-if(count>filter_order) {
-    y[count] = fir_filter(tmp, fltr_coef);
-    tmp.shift();
+    if(count>filter_order) {
+        y[count] = aux.fir_filter(tmp, fltr_coef);
+        tmp.shift();
+    }
+    else {
+        y[count] = tmp[count];
+    }
 }
-else {
-    y[count] = tmp[count];
-}
-*/
-y = tmp;
 
 return y;
 }
@@ -219,21 +213,16 @@ let tmp = [];
 
 for(let count = 0; count<buffer_size; count++) {
     tmp.push(iq[0][count]+iq[1][count]);
-}
 
-/*
-if(count>filter_order)
-{
-    y[count] = fir_filter(tmp, fltr_coef);
+if(count>filter_order) {
+    y[count] = aux.fir_filter(tmp, fltr_coef);
     tmp.shift();
 }
-else
-{
+else {
     y[count] = tmp[count];
 }
-*/
-y = tmp;
 
+}
 return y;
 }
 
