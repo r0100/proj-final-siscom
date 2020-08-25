@@ -105,8 +105,7 @@ function fmiqdemod(iq, fltr_coef) {
 	for(let count = 0; count<buffer_size; count++) {
 		let i = iq[0][count];
 		let q = iq[1][count];
-		tmp.push((i*q_conv[count] - q*i_conv[count])/(i*i + q*q)/5);
-		//tmp.push((i*q_conv[count] - q*i_conv[count])/10);
+		tmp.push((i*q_conv[count] - q*i_conv[count])/(i*i + q*q));
 		if(count>filter_order) {
 			y[count] = aux.fir_filter(tmp, fltr_coef);
 			tmp.shift();
@@ -440,7 +439,7 @@ module.exports = {
 	printAll: printAll,
 	initInfo: initInfo,
 	updateInfoText: updateInfoText,
-	sendServer: sendServer
+	sendBandServer: sendBandServer
 }
 
 function returnInfoText(code, value) {
@@ -489,14 +488,15 @@ function updateInfoText(param) {
 	return param.value;
 }
 
-function sendServer(cond) {
+function sendBandServer(cond) {
     if(!cond)
 		return;
 
-	let ajax = new XHTMLRequest();
-	ajax.open("POST", "/server.js", true);
-	ajax.setRequestHeader('Content-Type', 'application/json; charset=utf-8');
-	ajax.send(JSON.stringify(usr_cfg));
+	let url = "/update-frq?frq=" + usr_cfg.frq + "&bndeq=" + usr_cfg.bndeq + "&bnddr=" + usr_cfg.bnddr;
+	let ajax = new XMLHttpRequest();
+	ajax.open("GET", url, true);
+	ajax.setRequestHeader('Content-Type', 'charset=utf-8');
+	ajax.send();
 }
 
 },{}],9:[function(require,module,exports){
@@ -521,6 +521,11 @@ document.addEventListener('DOMContentLoaded', () => {
 					break;
 				case 'vol':
 					aump.updateVolume(event.target.value);
+					break;
+				case 'frq':
+				case 'bndeq':
+				case 'bnddr':
+					info.sendBandServer(true);
 					break;
 				case 'dmd':
 					aump.updateDemod(event.target.value);

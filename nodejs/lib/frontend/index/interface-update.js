@@ -16,7 +16,7 @@ module.exports = {
 	printAll: printAll,
 	initInfo: initInfo,
 	updateInfoText: updateInfoText,
-	sendServer: sendServer
+	sendBandServer: sendBandServer
 }
 
 function returnInfoText(code, value) {
@@ -65,12 +65,13 @@ function updateInfoText(param) {
 	return param.value;
 }
 
-function sendServer(cond) {
+function sendBandServer(cond) {
     if(!cond)
 		return;
 
-	let ajax = new XHTMLRequest();
-	ajax.open("POST", "/server.js", true);
-	ajax.setRequestHeader('Content-Type', 'application/json; charset=utf-8');
-	ajax.send(JSON.stringify(usr_cfg));
+	let url = "/update-frq?frq=" + usr_cfg.frq + "&bndeq=" + usr_cfg.bndeq + "&bnddr=" + usr_cfg.bnddr;
+	let ajax = new XMLHttpRequest();
+	ajax.open("GET", url, true);
+	ajax.setRequestHeader('Content-Type', 'charset=utf-8');
+	ajax.send();
 }

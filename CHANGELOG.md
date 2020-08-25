@@ -1,3 +1,4 @@
+Short hash:d57ee4e<br/>Author: r0100 <lvinicius15@gmail.com><br/>Date: 2020-08-24 19:52:47 -0300<br/> Adição de normalização de amplitude do sinal de entrada para evitar mudanças bruscas de intensidade do sinal. <br/><br/>
 Short hash:63deaef<br/>Author: r0100 <lvinicius15@gmail.com><br/>Date: 2020-08-24 18:56:44 -0300<br/> Troca da filtragem de ruídos pelo Biquad Filter da API WebAudio para a implementação de filtro FIR feita anteriormente dentro do próprio projeto. <br/><br/>
 Short hash:e94697e<br/>Author: r0100 <lvinicius15@gmail.com><br/>Date: 2020-08-24 09:32:13 -0300<br/> Correção de formatação <br/><br/>
 Short hash:83b69af<br/>Author: r0100 <lvinicius15@gmail.com><br/>Date: 2020-08-24 09:28:38 -0300<br/> Correção de formatação <br/><br/>

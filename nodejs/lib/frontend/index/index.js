@@ -20,6 +20,11 @@ document.addEventListener('DOMContentLoaded', () => {
 				case 'vol':
 					aump.updateVolume(event.target.value);
 					break;
+				case 'frq':
+				case 'bndeq':
+				case 'bnddr':
+					info.sendBandServer(true);
+					break;
 				case 'dmd':
 					aump.updateDemod(event.target.value);
 					break;

@@ -42,6 +42,15 @@ app.get('/test', (req, res) => {
 	res.sendFile(path.join(__dirname, 'public/html/test.html'));
 });
 
+app.get('/update-frq*', (req, res) => {
+	let new_band = {};
+	req.url.split('?')[1].split('&').forEach((eqtn) => {
+		let cfg = eqtn.split('=');
+		new_band[cfg[0]] = Number(cfg[1]);
+	});
+	console.log(new_band);
+});
+
 app.listen(PORT, () => {
 	console.log('Server working at port ' + PORT);
 	console.log('Check it at the address ' + URL_ADDR);
