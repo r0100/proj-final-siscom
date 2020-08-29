@@ -24,6 +24,7 @@
     "install": "^0.13.0",
     "ml-convolution": "^2.0.0",
     "npm": "^6.14.7",
+    "speaker": "^0.5.2",
     "wav": "^1.0.2",
     "wavefile": "^11.0.0"
   }

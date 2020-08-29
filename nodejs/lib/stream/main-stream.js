@@ -6,19 +6,19 @@ const Speaker = require('speaker');
 const wav  = require('wav');
 const readder = new wav.Reader();
 
-const { fmiqdemod, } = require('../demodulators'); 
+const RtlSdr = require('./sdr-rtl-stream');
+
+const { spawn } = require('child_process');
+
+const fmiqdemod = require('../demodulators/fmiqdemod'); 
 
 let audio_filter = [0.0261, 0.1402, 0.3337, 0.3337, 0.1402, 0.0261];
-
-//código de teste de wav (o qual será usado) 
-let path = "../../../audio_test/SDRSharp_20200718_002948Z_94500000Hz_IQ.wav";
 
 const read_file_stream = fs.createReadStream(path);
 
 
 const demodulate = new Transform({
     transform(chunk, encoding, cb) {
-
         //Separate IQ components from  the stereo signal
         let iq = [[], []];
         for(let i = 0; i<chunk.length-1; i+=2) {
@@ -28,7 +28,7 @@ const demodulate = new Transform({
 
         //let y = am.amiqdemod(iq, audio_filter);
         //Do the demodulation
-        let y = fmiqdemod(iq, audio_filter);
+        let y = fmiqdemod.iqdemod(iq, audio_filter);
         
         let out_audio_chunk = new Uint8Array(iq[0].length*2)
         let y_mono = [];
@@ -52,4 +52,41 @@ readder.on('format', (format) => {
     readder.pipe(demodulate).pipe(new Speaker(format));
 })
 
-read_file_stream.pipe(readder);
+/* const rtl = spawn('rtl_sdr', ['-s 240000', '-f 94100000', "-g 20" ,'-']);
+
+rtl.stdout.pipe(demodulate).pipe(new Speaker({ audioFormat: 1,
+    endianness: 'LE',
+    channels: 2,
+    sampleRate: 240000,
+    byteRate: 240000,
+    blockAlign: 2,
+    bitDepth: 8,
+    signed: false }))  */
+
+/* read_file_stream.pipe(demodulate).pipe(new Speaker({ audioFormat: 1,
+    endianness: 'LE',
+    channels: 2,
+    sampleRate: 240000,
+    byteRate: 120000,
+    blockAlign: 2,
+    bitDepth: 8,
+    signed: false })); */
+
+const u8_to_f = spawn('csdr', ['convert_u8_f']);
+const dem = spawn('csdr', ['fmdemod_quadri_cf']);
+const decimator = spawn('csdr', ['fractional_decimator_ff', '5']);
+const f_to_s16 = spawn('csdr', ['convert_f_s16']);
+
+
+
+const mySdr = new RtlSdr(0);
+
+const streamCache = new StreamCache();
+mySdr.start()
+mySdr.stream
+//.pipe(demodulate)
+.pipe(u8_to_f.stdin)
+u8_to_f.stdout.pipe(dem.stdin)
+dem.stdout.pipe(decimator.stdin)
+decimator.stdout.pipe(f_to_s16.stdin)
+f_to_s16.stdout.pipe(process.stdout)
