@@ -1,12 +1,9 @@
 const aump = require('./audio-manip.js');
 const info = require('./interface-update.js');
-const { fir_filter } = require('../../auxiliary')
-const {amiqdemod, fmiqdemod, lsbiqdemod, usbiqdemod} = require('../../demodulators');
 
 document.addEventListener('DOMContentLoaded', () => {
 	//código relacionado com a parte do painel no topo da página
 	info.initInfo();
-	aump.initAudio();
 
 	let infoElementIds = ['on-off-sect', 'vol', 'frq', 'bndeq', 'bnddr', 'dmd-sect', 'flt'];
 	infoElementIds.forEach((id) => {
@@ -22,6 +19,11 @@ document.addEventListener('DOMContentLoaded', () => {
 					break;
 				case 'vol':
 					aump.updateVolume(event.target.value);
+					break;
+				case 'frq':
+				case 'bndeq':
+				case 'bnddr':
+					info.sendBandServer(true);
 					break;
 				case 'dmd':
 					aump.updateDemod(event.target.value);

@@ -1,4 +1,4 @@
-const {amiqdemod, fmiqdemod, lsbiqdemod, usbiqdemod} = require('../../demodulators');
+const {am, fm, lsb, usb} = require('../../demodulators');
 
 const playButton = document.querySelector('button');
 
@@ -49,7 +49,7 @@ function init() {
         //Do the demodulation
         let audio_filter = [0.0261, 0.1402, 0.3337, 0.3337, 0.1402, 0.0261];
 
-        let y = fmiqdemod.fmiqdemod(iq, audio_filter);
+        let y = fm.iqdemod(iq, audio_filter);
         let outChannelData1 = outputBuffer.getChannelData(0);
         let outChannelData2 = outputBuffer.getChannelData(1);
         console.log(y)
