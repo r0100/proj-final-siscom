@@ -16,6 +16,7 @@ const app = express();
 
 app.use(express.static('public'));
 
+/*
 setTimeout(() => {
 	const deviceCount = rtlsdr.get_device_count();
 	if (!deviceCount) {
@@ -23,6 +24,7 @@ setTimeout(() => {
 		process.exit(1);
 }
 }, 0);
+*/
 
 app.get('/', (req, res) => {
 	res.sendFile(path.join(__dirname, 'public/html/index.html'));

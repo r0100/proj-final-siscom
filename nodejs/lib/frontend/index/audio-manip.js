@@ -13,6 +13,7 @@ const AUDIO = '/audio';
 const LPF = aux.audio_filter;
 const NO_FILTER = [1, 0, 0];
 const BUFFER_SIZE = 4096;
+const FS = 150000;
 
 let ctx;
 let source;
@@ -32,16 +33,10 @@ module.exports = {
 
 function initAudio() {
 	let audioContext = window.AudioContext||window.webkitAudioContext;
-	ctx = new AudioContext();
+	ctx = new AudioContext({latencyHint: 'interactive', sampleRate: FS});
 	source = ctx.createBufferSource();
 	demod = ctx.createScriptProcessor(BUFFER_SIZE, 2, 2);
-	//filter = ctx.createBiquadFilter();
 	volume = ctx.createGain();
-	/*
-	filter.type = 'lowpass';
-	filter.gain.value = 1;
-	filter.frequency.value = LPF;
-	*/
 	filter = LPF;
 	volume.gain.setValueAtTime(0.5, ctx.currentTime);
 
@@ -61,6 +56,7 @@ function initAudio() {
 	}
 
 	demod.onaudioprocess = function(audioProcessingEvent) {
+		if(filter==null) filter = LPF;
 		let inputBuffer = audioProcessingEvent.inputBuffer;
 		let outputBuffer = audioProcessingEvent.outputBuffer;
 
@@ -99,29 +95,20 @@ function initAudio() {
 	getAudio();
 
 	source.loop = true;
-	//source.connect(demod).connect(filter).connect(volume).connect(ctx.destination);
 	source.connect(demod).connect(volume).connect(ctx.destination);
 	source.start();
-	/*
-	source.onended = function() {
-		source.disconnect();
-		demod.disconnect();
-		filter.disconnect();
-		volume.disconnect();
-		initAudio();
-	}
-	*/
-
 }
 
 function playPause(onoff, vol) {
-	if(!ctx) {
-		initAudio();
-	}
 	if(onoff==='on') {
 		updateVolume(vol);
+		initAudio();
 	} else {
 		volume.gain.setValueAtTime(0, ctx.currentTime);
+		source.disconnect()
+		demod.disconnect()
+		volume.disconnect()
+		ctx.destination.disconnect();
 		ctx = null;
 		volume = null;
 		source=null;
@@ -146,10 +133,8 @@ function updateFilter(fltCond) {
 		return;
 
 	if(fltCond==='on') {
-		//filter.frequency.value = LPF;
 		filter = LPF
 	} else {
-		//filter.frequency.value = NO_FILTER;
 		filter = NO_FILTER;
 	}
 	console.log(filter);
