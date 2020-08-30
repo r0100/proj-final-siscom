@@ -22,19 +22,20 @@ function fmiqdemod(iq, fltr_coef) {
 		let dq = count===0?q:(iq[1][count]-iq[1][count-1]);
 		let den = i*i + q*q;
 		tmp.push( (den===0)?0:CORR_FACTOR*(i*dq - q*di)/den );
+		/* 
 		if(count>filter_order) {
 			y[count] = aux.fir_filter(tmp, fltr_coef);
 			tmp.shift();
 		} else {
 			y[count] = tmp[count];
 		}
-		offset += y[count]/buffer_size; //toma o offset do sinal
+		offset += y[count]/buffer_size; //toma o offset do sinal */
 	}
 
-	for(let count = 0; count<buffer_size; count++)
-		y[count]-=offset;
+	/* for(let count = 0; count<buffer_size; count++)
+		y[count]-=offset; */
 
-	return y;
+	return tmp;
 }
 
 

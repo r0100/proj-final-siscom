@@ -10,7 +10,7 @@ const rtlsdr = require('rtl-sdr');
 const PORT = process.env.PORT||5000;
 //const URL_ADDR = 'proj-final-siscom.herokuapp.com';
 const URL_ADDR = '127.0.0.1:'+PORT;
-const AUDIO_FILE = './public/audios/audio.wav';
+const AUDIO_FILE = path.join(__dirname, '/public/audios/out_demo');
 
 const app = express();
 
@@ -31,12 +31,8 @@ app.get('/', (req, res) => {
 });
 
 app.get('/audio', async (req, res) => {
-	res.writeHead(200, {
-		'Content-Type': 'audio/wav',
-	});
-
-	let stream = fs.createReadStream(AUDIO_FILE);
-	stream.pipe(res);
+	
+	res.sendFile(AUDIO_FILE);
 	/*
 	const forked = fork('./lib/stream/continuous-stream.js');
 	console.log('audio')
