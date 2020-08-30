@@ -1,7 +1,10 @@
 const rtlsdr = require('rtl-sdr')
 const {Readable} = require('stream');
 
-
+const SAMPLE_RATE = 240000;
+const DEFAULT_FRQ = 97.5e6;
+const DEFAULT_BNDEQ = 16e6;
+const DEFAULT_BNDDR = 16e6;
 
 module.exports = class RtlSdr {
     constructor(deviceIndex) {
@@ -18,11 +21,11 @@ module.exports = class RtlSdr {
         // Enable or disable the internal digital AGC of the RTL2822
         //rtlsdr.set_agc_mode(this.dev, 1)
         // Select sample rate
-        rtlsdr.set_sample_rate(this.dev, 240000)
+        rtlsdr.set_sample_rate(this.dev, SAMPLE_RATE)
         // Reset the internal buffer
         rtlsdr.reset_buffer(this.dev)
 
-        rtlsdr.set_center_freq(this.dev, 93.5e6);
+        rtlsdr.set_center_freq(this.dev, DEFAULT_FRQ);
 
 
         this.stream = new Readable({

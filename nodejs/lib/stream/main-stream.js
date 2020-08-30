@@ -77,8 +77,6 @@ const dem = spawn('csdr', ['fmdemod_quadri_cf']);
 const decimator = spawn('csdr', ['fractional_decimator_ff', '5']);
 const f_to_s16 = spawn('csdr', ['convert_f_s16']);
 
-
-
 const mySdr = new RtlSdr(0);
 
 const streamCache = new StreamCache();

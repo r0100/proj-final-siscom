@@ -23,7 +23,8 @@ document.addEventListener('DOMContentLoaded', () => {
 				case 'frq':
 				case 'bndeq':
 				case 'bnddr':
-					info.sendBandServer(true);
+					if(event.type==='change' && info.usr_cfg.onoff==='on') info.sendBandServer();
+					aump.updateFrq(info.usr_cfg.frq, info.usr_cfg.bndeq, info.usr_cfg.bnddr);
 					break;
 				case 'dmd':
 					aump.updateDemod(event.target.value);

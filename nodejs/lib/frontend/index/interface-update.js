@@ -66,12 +66,10 @@ function updateInfoText(param) {
 }
 
 function sendBandServer(cond) {
-    if(!cond)
-		return;
-
-	let url = "/update-frq?frq=" + usr_cfg.frq + "&bndeq=" + usr_cfg.bndeq + "&bnddr=" + usr_cfg.bnddr;
+	let url = "/audio?frq=" + usr_cfg.frq + "&bndeq=" + usr_cfg.bndeq + "&bnddr=" + usr_cfg.bnddr;
 	let ajax = new XMLHttpRequest();
 	ajax.open("GET", url, true);
 	ajax.setRequestHeader('Content-Type', 'charset=utf-8');
+	ajax.responseType = 'arraybuffer';
 	ajax.send();
 }

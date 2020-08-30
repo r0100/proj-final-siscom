@@ -21,6 +21,9 @@ let demod;
 let filter;
 let volume;
 let demodMethod = 'nenhum';
+let frq = 97.5;
+let bndeq = 16;
+let bnddr = 16;
 
 
 module.exports = {
@@ -28,7 +31,8 @@ module.exports = {
 	playPause: playPause,
 	updateVolume: updateVolume,
 	updateDemod: updateDemod,
-	updateFilter: updateFilter
+	updateFilter: updateFilter,
+	updateFrq: updateFrq
 }
 
 function initAudio() {
@@ -42,7 +46,7 @@ function initAudio() {
 
 	function getAudio() {
 		request = new XMLHttpRequest();
-		request.open('GET', AUDIO, true);
+		request.open('GET', AUDIO+'?frq='+frq+'&bndeq='+bndeq+'&bnddr='+bnddr, true);
 		request.responseType = 'arraybuffer';
 		request.onload = function() {
 			let audioData = request.response;
@@ -138,4 +142,11 @@ function updateFilter(fltCond) {
 		filter = NO_FILTER;
 	}
 	console.log(filter);
+}
+
+function updateFrq(newFrq, newBndeq, newBnddr) {
+	console.log('Banda de ' + newFrq + ' + ' + newBnddr + ' e - ' + newBndeq);
+	frq = Number(newFrq);
+	bndeq = Number(newBndeq);
+	bnddr = Number(newBnddr);
 }

@@ -278,6 +278,9 @@ let demod;
 let filter;
 let volume;
 let demodMethod = 'nenhum';
+let frq = 97.5;
+let bndeq = 16;
+let bnddr = 16;
 
 
 module.exports = {
@@ -285,7 +288,8 @@ module.exports = {
 	playPause: playPause,
 	updateVolume: updateVolume,
 	updateDemod: updateDemod,
-	updateFilter: updateFilter
+	updateFilter: updateFilter,
+	updateFrq: updateFrq
 }
 
 function initAudio() {
@@ -299,7 +303,7 @@ function initAudio() {
 
 	function getAudio() {
 		request = new XMLHttpRequest();
-		request.open('GET', AUDIO, true);
+		request.open('GET', AUDIO+'?frq='+frq+'&bndeq='+bndeq+'&bnddr='+bnddr, true);
 		request.responseType = 'arraybuffer';
 		request.onload = function() {
 			let audioData = request.response;
@@ -397,6 +401,13 @@ function updateFilter(fltCond) {
 	console.log(filter);
 }
 
+function updateFrq(newFrq, newBndeq, newBnddr) {
+	console.log('Banda de ' + newFrq + ' + ' + newBnddr + ' e - ' + newBndeq);
+	frq = Number(newFrq);
+	bndeq = Number(newBndeq);
+	bnddr = Number(newBnddr);
+}
+
 },{"../../auxiliary.js":1,"../../demodulators/amiqdemod.js":2,"../../demodulators/fmiqdemod.js":3,"../../demodulators/lsbiqdemod.js":4,"../../demodulators/noiqdemod.js":5,"../../demodulators/usbiqdemod.js":6}],8:[function(require,module,exports){
 'use strict'
 
@@ -466,13 +477,11 @@ function updateInfoText(param) {
 }
 
 function sendBandServer(cond) {
-    if(!cond)
-		return;
-
-	let url = "/update-frq?frq=" + usr_cfg.frq + "&bndeq=" + usr_cfg.bndeq + "&bnddr=" + usr_cfg.bnddr;
+	let url = "/audio?frq=" + usr_cfg.frq + "&bndeq=" + usr_cfg.bndeq + "&bnddr=" + usr_cfg.bnddr;
 	let ajax = new XMLHttpRequest();
 	ajax.open("GET", url, true);
 	ajax.setRequestHeader('Content-Type', 'charset=utf-8');
+	ajax.responseType = 'arraybuffer';
 	ajax.send();
 }
 
@@ -502,7 +511,8 @@ document.addEventListener('DOMContentLoaded', () => {
 				case 'frq':
 				case 'bndeq':
 				case 'bnddr':
-					info.sendBandServer(true);
+					if(event.type==='change' && info.usr_cfg.onoff==='on') info.sendBandServer();
+					aump.updateFrq(info.usr_cfg.frq, info.usr_cfg.bndeq, info.usr_cfg.bnddr);
 					break;
 				case 'dmd':
 					aump.updateDemod(event.target.value);
