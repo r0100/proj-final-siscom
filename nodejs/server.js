@@ -42,8 +42,8 @@ app.get('/audio*', async (req, res) => {
 	let streamBuffer = fs.createReadStream(AUDIO_FILE);
 	//streamBuffer.pipe(res);
 
-	//wav.fromScratch(2, 150e3, '32', [0, 0, 0, 0]);
-	//res.write(Buffer.from(wav.toBuffer()));
+	wav.fromScratch(2, 150e3, '32f', [0, 0, 0, 0]);
+	res.write(Buffer.from(wav.toBuffer()));
 
 	let center_frq = new_band.frq + (new_band.bnddr-new_band.bndeq)/2;
 	let streamCache = new StreamCache();

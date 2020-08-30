@@ -282,7 +282,6 @@ let frq = 97.5;
 let bndeq = 16;
 let bnddr = 16;
 
-
 module.exports = {
 	ctx: ctx,
 	playPause: playPause,
@@ -293,9 +292,11 @@ module.exports = {
 }
 
 function initAudio() {
+	let audioElement = document.getElementById('audio-stream');
 	let audioContext = window.AudioContext||window.webkitAudioContext;
 	ctx = new AudioContext({latencyHint: 'interactive', sampleRate: FS});
-	source = ctx.createBufferSource();
+	//source = ctx.createBufferSource();
+	source=  ctx.createMediaElementSource(audioElement);
 	demod = ctx.createScriptProcessor(BUFFER_SIZE, 2, 2);
 	volume = ctx.createGain();
 	filter = LPF;
@@ -353,11 +354,14 @@ function initAudio() {
 		}
 	}
 
-	getAudio();
+	//getAudio();
 
 	source.loop = true;
 	source.connect(demod).connect(volume).connect(ctx.destination);
-	source.start();
+	audioElement.src = '/audio?frq=' + frq + '&bndeq=' + bndeq + '&bnddr=' + bnddr;
+	console.log(audioElement.src);
+	audioElement.play();
+	//source.start();
 }
 
 function playPause(onoff, vol) {
