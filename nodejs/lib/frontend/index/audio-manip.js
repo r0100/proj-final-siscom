@@ -66,6 +66,7 @@ function initAudio() {
 		let outputBuffer = audioProcessingEvent.outputBuffer;
 
 		let iq = [inputBuffer.getChannelData(0), inputBuffer.getChannelData(1)];
+		//console.log(iq);
 
 		switch(demodMethod) {
 			case 'am':
@@ -110,9 +111,11 @@ function initAudio() {
 function playPause(onoff, vol) {
 	if(onoff==='on') {
 		updateVolume(vol);
-		initAudio();
+		if(!ctx) initAudio();
+		document.getElementById('audio-stream').play();
 	} else {
 		volume.gain.setValueAtTime(0, ctx.currentTime);
+		/*
 		source.disconnect()
 		demod.disconnect()
 		volume.disconnect()
@@ -121,6 +124,8 @@ function playPause(onoff, vol) {
 		volume = null;
 		source=null;
 		filter=null;
+		*/
+		document.getElementById('audio-stream').pause();
 	}
 }
 

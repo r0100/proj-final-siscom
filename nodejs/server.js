@@ -5,10 +5,8 @@ const express = require('express');
 const path = require('path')
 const { fork } = require('child_process');
 const StreamCache = require('stream-cache');
-//const wav  = require('wav');
+const wav  = require('wav');
 //const readder = new wav.Reader();
-const wavefile = require('wavefile');
-let wav = new wavefile.WaveFile();
 
 //const RtlSdr = require('./lib/stream/sdr-rtl-stream');
 const Streamer = require('./lib/stream/streamer.js');
@@ -27,7 +25,6 @@ app.get('/', (req, res) => {
 });
 
 app.get('/audio*', async (req, res) => {
-
 	let new_band = {};
 	req.url.split('?')[1].split('&').forEach((eqtn) => {
 		let cfg = eqtn.split('=');
@@ -41,10 +38,7 @@ app.get('/audio*', async (req, res) => {
 
 	let streamBuffer = fs.createReadStream(AUDIO_FILE);
 	//streamBuffer.pipe(res);
-
-	wav.fromScratch(2, 150e3, '32f', [0, 0, 0, 0]);
-	res.write(Buffer.from(wav.toBuffer()));
-
+	let wav_writer = new wav.Writer({"channels": 2, "sampleRate": 150e3, "bit-depth": '32f'});
 	let center_frq = new_band.frq + (new_band.bnddr-new_band.bndeq)/2;
 	let streamCache = new StreamCache();
 	/*
@@ -52,11 +46,14 @@ app.get('/audio*', async (req, res) => {
 	streamer.sdr.setCenterFreq(center_frq);
 	streamer.sdr.stream.pipe(streamer.u8_to_f.stdin)
 	*/
-
 	streamBuffer.pipe(streamer.u8_to_f.stdin)
 	streamer.u8_to_f.stdout.pipe(streamer.decimator.stdin)
-	streamer.decimator.stdout.pipe(res);
-	/*
+	//streamer.u8_to_f.stdout.pipe(streamer.dem.stdin)
+	//streamer.dem.stdout.pipe(streamer.decimator.stdin)
+	//streamer.decimator.stdout.pipe(streamer.f_to_s8.stdin);
+	streamer.decimator.stdout.pipe(wav_writer).pipe(res);
+
+	/* código de main-stream para referência, depois tirar
 	const streamCache = new StreamCache();
 	mySdr.start()
 	mySdr.stream
@@ -67,14 +64,6 @@ app.get('/audio*', async (req, res) => {
 	decimator.stdout.pipe(f_to_s16.stdin)
 	f_to_s16.stdout.pipe(process.stdout)
 	*/
-
-	/*
-	const forked = fork('./lib/stream/continuous-stream.js');
-	console.log('audio')
-	forked.on('message', msg => {
-		//console.log(msg);
-		res.write(Buffer.from(msg.data));
-	}); */
 });
 
 app.get('/test', (req, res) => {
