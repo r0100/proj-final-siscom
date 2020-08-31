@@ -1,30 +1,23 @@
 'use strict'
 
-const fs = require("fs");
 const express = require('express');
+const app = express();
+const http = require('http').createServer(app);
+const io = require('socket.io')(http);
 const path = require('path')
-const { fork } = require('child_process');
-const rtlsdr = require('rtl-sdr');
+const fs = require('fs');
+
+const sdr = require('./lib/stream/main-stream.js');
 
 //const HOSTNAME = '127.0.0.1';
 const PORT = process.env.PORT||5000;
 //const URL_ADDR = 'proj-final-siscom.herokuapp.com';
 const URL_ADDR = '127.0.0.1:'+PORT;
-const AUDIO_FILE = path.join(__dirname, '/public/audios/out_demo');
+const AUDIO_FILE = path.join(__dirname, '/public/audios/test');
 
-const app = express();
 
 app.use(express.static('public'));
 
-/*
-setTimeout(() => {
-	const deviceCount = rtlsdr.get_device_count();
-	if (!deviceCount) {
-		console.log("No supported RTLSDR devices found, server can't start");
-		process.exit(1);
-}
-}, 0);
-*/
 
 app.get('/', (req, res) => {
 	res.sendFile(path.join(__dirname, 'public/html/index.html'));
@@ -33,19 +26,32 @@ app.get('/', (req, res) => {
 app.get('/audio', async (req, res) => {
 	
 	res.sendFile(AUDIO_FILE);
-	/*
-	const forked = fork('./lib/stream/continuous-stream.js');
-	console.log('audio')
-	forked.on('message', msg => {
-		//console.log(msg);
-		res.write(Buffer.from(msg.data));
-	});
-	*/
 });
 
 app.get('/test', (req, res) => {
 	res.sendFile(path.join(__dirname, 'public/html/test.html'));
 });
+
+//############
+//###SOCKET###
+//############
+io.on('connection', (socket) => {
+	console.log('user connected');
+
+
+	socket.on('disconnect', () => {
+		console.log('User disconnected');
+	})
+})
+
+//#############
+//#####SDR#####
+//#############
+sdr.outStream.on('data', (chunk) => {
+	console.log(chunk.length)
+	io.emit('raw_audio', chunk);
+})
+sdr.mySdr.start();
 
 app.get('/update-frq*', (req, res) => {
 	let new_band = {};
@@ -56,7 +62,7 @@ app.get('/update-frq*', (req, res) => {
 	console.log(new_band);
 });
 
-app.listen(PORT, () => {
+http.listen(PORT, () => {
 	console.log('Server working at port ' + PORT);
 	console.log('Check it at the address ' + URL_ADDR);
 });

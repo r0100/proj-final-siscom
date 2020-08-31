@@ -1,23 +1,13 @@
 'use strict'
 
-const fs = require('fs');
 const {Transform} = require('stream');
-const Speaker = require('speaker');
-const wav  = require('wav');
-const readder = new wav.Reader();
-
 const RtlSdr = require('./sdr-rtl-stream');
-
 const { spawn } = require('child_process');
-
 const fmiqdemod = require('../demodulators/fmiqdemod'); 
 
-let audio_filter = [0.0261, 0.1402, 0.3337, 0.3337, 0.1402, 0.0261];
-const path = require('path')
+//const path = require('path')
+//const audio_path = path.join(__dirname, './test');
 
-const audio_path = path.join(__dirname, './test');
-const read_file_stream = fs.createReadStream(audio_path);
-const write_stream = fs.createWriteStream('./demodulate_out');
 
 function convert_u8_f(chunk) {
     let u8Buffer = new Uint8Array(chunk);
@@ -68,8 +58,8 @@ const demodulate = new Transform({
             iq[0].push(f_chunk[i]);
             iq[1].push(f_chunk[i+1]);
         }
-        
-        let y = fmiqdemod.iqdemod(iq, audio_filter);
+
+        let y = fmiqdemod.iqdemod(iq);
 
         this.push(Buffer.from((new Float32Array(y).buffer)))
 
@@ -112,7 +102,7 @@ f_to_s16.stdout.pipe(process.stdout); */
 
 
 const mySdr = new RtlSdr(0);
-mySdr.start()
+//mySdr.start()
 
 //Using demodulatio from csdr
 /* mySdr.stream
@@ -124,5 +114,10 @@ f_to_s16.stdout.pipe(process.stdout) */
 
 //Using our demodulation
 mySdr.stream.pipe(demodulate).pipe(decimator.stdin)
-decimator.stdout.pipe(process.stdout)
+//decimator.stdout.pipe(process.stdout)
+
+module.exports = {
+    mySdr: mySdr,
+    outStream: decimator.stdout
+}
 

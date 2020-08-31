@@ -6,15 +6,12 @@ module.exports = {
     iqdemod: fmiqdemod
 };
 
-function fmiqdemod(iq, fltr_coef) {
+function fmiqdemod(iq) {
 	let buffer_size = iq[0].length;
 	let y = [];
 	let tmp = [];
-	let offset = 0;
 	const CORR_FACTOR = 0.340447550238101026565118445432744920253753662109375; //retirado do código do csdr
 	
-	let filter_order = fltr_coef.length;
-
 	for(let count = 0; count<buffer_size; count++) {
 		let i = iq[0][count];
 		let q = iq[1][count];

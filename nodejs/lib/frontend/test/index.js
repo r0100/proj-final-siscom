@@ -1,56 +1,80 @@
+const  Write  = require('web-audio-stream/write')
+const io = require('socket.io-client');
 
-const playButton = document.querySelector('button');
 
-// Create AudioContext and buffer source
-let audioCtx;
+const playButton = document.querySelector('.play-button');
+const stopButton = document.querySelector('.stop-button');
+
+let audioCtx = new AudioContext();
+audioCtx.sampleRate = 48000;
 let myArrayBuffer;
-let source;
+let outAudioStream;
+let socket;
+let running = false;
 
 
-function init() {
-    audioCtx = new AudioContext();
 
+function start() {
+    socket = io();
+    running = true;
+    socket.on('raw_audio', (data) => {
+        console.log(data)
 
-    function getData() {
-        request = new XMLHttpRequest();
-        request.open('GET', '/audio', true);
-        request.responseType = 'arraybuffer';
-        request.onload = function() {
-            let audioData = request.response;
-            let fBuff = new Float32Array(audioData)
-            myArrayBuffer = audioCtx.createBuffer(1, audioData.byteLength, 48000);
-            let nowBuffering = myArrayBuffer.getChannelData(0);
-            for (let i = 0; i < audioData.byteLength; ++i) {
-                nowBuffering[i] = fBuff[i];
-            }
-
-            source = audioCtx.createBufferSource();
-
-            source.buffer = myArrayBuffer;
-            // connect the AudioBufferSourceNode to the
-            // destination so we can hear the sound
-            source.connect(audioCtx.destination);
-            // start the source playing
-            source.start();
+        //Is necessary create the audio stream only when using it
+        // because it keeps raising incorrect input error
+        if (!outAudioStream) {
+            outAudioStream = Write(audioCtx.destination, {
+                channels: 1
+            });
         }
 
-        request.send();
-    }
+        //Filter wrong buffers
+        if (data.byteLength % 2 !== 0)
+            return;
+        
+        let fBuff = new Float32Array(data)
+        myArrayBuffer = audioCtx.createBuffer(1, fBuff.length, 48000);
+        myArrayBuffer.copyToChannel(fBuff, 0);
+        outAudioStream(myArrayBuffer)
+    })
 
-
-
-    getData();
-
-    // set the buffer in the AudioBufferSourceNode
-
+    socket.on('error', (reason) => {
+        console.log(reason);
+        stop()
+    })
     
+    socket.on('connect_error', (reason) => {
+        console.log(reason);
+        stop()
+    })
 
+    socket.on('disconnect', (reason) => {
+        console.log(reason);
+        stop();
+
+    })
+}
+
+function stop() {
+    if (socket)
+        socket.close();
+
+    socket = null;
+
+    if (outAudioStream)
+        outAudioStream(null);
+
+    outAudioStream = null;
+    running = false;
 }
 
 // wire up play button
 playButton.onclick = function() {
-    if(!audioCtx) {
-        init();
-    }
+    if (!running)
+        start();
+}
+
+stopButton.onclick = function () {
+    stop();
 }
 
