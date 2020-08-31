@@ -14,7 +14,7 @@ let streamer = new Streamer();
 
 const PORT = process.env.PORT||5000;
 const URL_ADDR = '127.0.0.1:'+PORT;
-const AUDIO_FILE = './public/audios/raw.dat';
+const AUDIO_FILE = path.join(__dirname, '/public/audios/raw.dat');
 
 const app = express();
 
@@ -31,14 +31,15 @@ app.get('/audio*', async (req, res) => {
 		new_band[cfg[0]] = Number(cfg[1]);
 	});
 	console.log(new_band);
-
+	/*
 	res.writeHead(200, {
 		'Content-Type': 'audio/wav',
 	});
+	*/
 
 	let streamBuffer = fs.createReadStream(AUDIO_FILE);
 	//streamBuffer.pipe(res);
-	let wav_writer = new wav.Writer({"channels": 2, "sampleRate": 150e3, "bit-depth": '32f'});
+	//let wav_writer = new wav.Writer({"channels": 2, "sampleRate": 150e3, "bit-depth": '32f'});
 	let center_frq = new_band.frq + (new_band.bnddr-new_band.bndeq)/2;
 	let streamCache = new StreamCache();
 	/*
@@ -51,7 +52,8 @@ app.get('/audio*', async (req, res) => {
 	//streamer.u8_to_f.stdout.pipe(streamer.dem.stdin)
 	//streamer.dem.stdout.pipe(streamer.decimator.stdin)
 	//streamer.decimator.stdout.pipe(streamer.f_to_s8.stdin);
-	streamer.decimator.stdout.pipe(wav_writer).pipe(res);
+	streamer.decimator.stdout.pipe(res);
+	//res.sendFile(AUDIO_FILE);
 
 	/* código de main-stream para referência, depois tirar
 	const streamCache = new StreamCache();

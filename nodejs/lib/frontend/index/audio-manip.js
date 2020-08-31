@@ -8,10 +8,10 @@ const aux = require('../../auxiliary.js');
 'use strict'
 
 const AUDIO = '/audio';
-//const LPF = 16000;
-//const NO_FILTER = 22050;
-const LPF = aux.audio_filter;
-const NO_FILTER = [1, 0, 0];
+const LPF = 5000;
+const NO_FILTER = 22050;
+//const LPF = aux.audio_filter;
+//const NO_FILTER = [1, 0, 0];
 const BUFFER_SIZE = 4096;
 const FS = 150000;
 
@@ -35,14 +35,15 @@ module.exports = {
 }
 
 function initAudio() {
-	let audioElement = document.getElementById('audio-stream');
 	let audioContext = window.AudioContext||window.webkitAudioContext;
 	ctx = new AudioContext({latencyHint: 'interactive', sampleRate: FS});
-	//source = ctx.createBufferSource();
-	source=  ctx.createMediaElementSource(audioElement);
+	source = ctx.createBufferSource();
 	demod = ctx.createScriptProcessor(BUFFER_SIZE, 2, 2);
 	volume = ctx.createGain();
-	filter = LPF;
+	//filter = LPF;
+	filter = ctx.createBiquadFilter();
+	filter.type = 'lowpass';
+	filter.frequency.value = LPF;
 	volume.gain.setValueAtTime(0.5, ctx.currentTime);
 
 	function getAudio() {
@@ -51,13 +52,21 @@ function initAudio() {
 		request.responseType = 'arraybuffer';
 		request.onload = function() {
 			let audioData = request.response;
-			ctx.decodeAudioData(audioData, function(buffer) {
-				myBuffer = buffer;
-				source.buffer = myBuffer;
-			},
-			function(e){"Error with decoding audio data" + e.err});
+			console.log(audioData);
+			if(audioData) {
+				let fBuff = new Float32Array(audioData)
+				console.log(fBuff);
+				myArrayBuffer = ctx.createBuffer(2, (fBuff.length-1)/2, FS);
+				let nowBuffering = [myArrayBuffer.getChannelData(0), myArrayBuffer.getChannelData(1)];
+				for (let i = 0; i < (fBuff.length-1)/2; i++) {
+					nowBuffering[0][i] = (isNaN(fBuff[2*i]))?0:fBuff[2*i];
+					nowBuffering[1][i] = (isNaN(fBuff[2*i+1]))?0:fBuff[2*i+1];
+				}
+				source.buffer = myArrayBuffer;
+			}
 		}
 		request.send();
+
 	}
 
 	demod.onaudioprocess = function(audioProcessingEvent) {
@@ -98,24 +107,18 @@ function initAudio() {
 		}
 	}
 
-	//getAudio();
-
 	source.loop = true;
-	source.connect(demod).connect(volume).connect(ctx.destination);
-	audioElement.src = '/audio?frq=' + frq + '&bndeq=' + bndeq + '&bnddr=' + bnddr;
-	console.log(audioElement.src);
-	audioElement.play();
-	//source.start();
+	source.connect(demod).connect(filter).connect(volume).connect(ctx.destination);
+	source.start();
+	getAudio();
 }
 
 function playPause(onoff, vol) {
 	if(onoff==='on') {
 		updateVolume(vol);
 		if(!ctx) initAudio();
-		document.getElementById('audio-stream').play();
 	} else {
 		volume.gain.setValueAtTime(0, ctx.currentTime);
-		/*
 		source.disconnect()
 		demod.disconnect()
 		volume.disconnect()
@@ -124,8 +127,6 @@ function playPause(onoff, vol) {
 		volume = null;
 		source=null;
 		filter=null;
-		*/
-		document.getElementById('audio-stream').pause();
 	}
 }
 
@@ -146,9 +147,9 @@ function updateFilter(fltCond) {
 		return;
 
 	if(fltCond==='on') {
-		filter = LPF
+		filter.frequency.value = LPF
 	} else {
-		filter = NO_FILTER;
+		filter.frequency.value = NO_FILTER;
 	}
 	console.log(filter);
 }

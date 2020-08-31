@@ -7,7 +7,7 @@ let usr_cfg = {
     bndeq: 16,
     bnddr: 16,
     dmd: "nenhum",
-    flt: true,
+    flt: 'on',
 };
 
 module.exports = {
