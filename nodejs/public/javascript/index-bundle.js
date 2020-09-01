@@ -270,7 +270,8 @@ const NO_FILTER = 22050;
 //const LPF = aux.audio_filter;
 //const NO_FILTER = [1, 0, 0];
 const BUFFER_SIZE = 4096;
-const FS = 150000;
+const FS_IN = 300e3;
+const FS = 48e3;
 
 let ctx;
 let source;
@@ -309,17 +310,17 @@ function initAudio() {
 		request.responseType = 'arraybuffer';
 		request.onload = function() {
 			let audioData = request.response;
+			if(audioData && ctx) {
 			console.log(audioData);
-			if(audioData) {
-				let fBuff = new Float32Array(audioData)
-				console.log(fBuff);
-				myArrayBuffer = ctx.createBuffer(2, (fBuff.length-1)/2/*audioData.byteLength/8*/, FS);
-				let nowBuffering = [myArrayBuffer.getChannelData(0), myArrayBuffer.getChannelData(1)];
-				for (let i = 0; i < (fBuff.length-1)/2; i++) {
-					nowBuffering[0][i] = (isNaN(fBuff[2*i]))?0:fBuff[2*i];
-					nowBuffering[1][i] = (isNaN(fBuff[2*i+1]))?0:fBuff[2*i+1];
-				}
-				source.buffer = myArrayBuffer;
+			let fBuff = new Float32Array(audioData)
+			console.log(fBuff);
+			myArrayBuffer = ctx.createBuffer(2, Math.round((fBuff.length-1)/2), FS);
+			let nowBuffering = [myArrayBuffer.getChannelData(0), myArrayBuffer.getChannelData(1)];
+			for (let i = 0; i < (fBuff.length-1)/2; i++) {
+				nowBuffering[0][i] = (isNaN(fBuff[2*i]))?0:fBuff[2*i];
+				nowBuffering[1][i] = (isNaN(fBuff[2*i+1]))?0:fBuff[2*i+1];
+			}
+			source.buffer = myArrayBuffer;
 			}
 		}
 		request.send();
@@ -337,26 +338,37 @@ function initAudio() {
 		switch(demodMethod) {
 			case 'am':
 				//console.log('am');
-				y = am.iqdemod(iq, filter);
+				y = am.iqdemod(iq, aux.audio_filter);
 				break;
 			case 'fm':
 				//console.log('fm');
-				y = fm.iqdemod(iq, filter);
+				y = fm.iqdemod(iq, aux.audio_filter);
 				break;
 			case 'lsb':
 				//console.log('lsb');
-				y = lsb.iqdemod(iq, filter);
+				y = lsb.iqdemod(iq, aux.audio_filter);
 				break;
 			case 'usb':
 				//console.log('usb');
-				y = usb.iqdemod(iq, filter);
+				y = usb.iqdemod(iq, aux.audio_filter);
 				break;
 			default:
-				y = no.iqdemod(iq, filter);
+				y = no.iqdemod(iq, aux.audio_filter);
 				break;
 		}
 		//console.log('Vetor de saída: ');
 		//console.log(y);
+		let tmp = y.map((sample) => {return sample});
+		//console.log(y);
+		//console.log(tmp);
+		y = [];
+		let dec_ratio = Math.round(FS_IN/FS);
+		//console.log(tmp.length);
+		//console.log(dec_ratio);
+		for(let i = 0; i < tmp.length; i++) {
+			if(i%dec_ratio===0) y.push(tmp[i]);
+		}
+		console.log(y);
 		let outData = [outputBuffer.getChannelData(0), outputBuffer.getChannelData(1)];
 		for(let i = 0; i<outData[0].length; i++) {
 			outData[0][i] = y[i];

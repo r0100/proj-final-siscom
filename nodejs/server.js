@@ -47,12 +47,16 @@ app.get('/audio*', async (req, res) => {
 	streamer.sdr.setCenterFreq(center_frq);
 	streamer.sdr.stream.pipe(streamer.u8_to_f.stdin)
 	*/
+
 	streamBuffer.pipe(streamer.u8_to_f.stdin)
 	streamer.u8_to_f.stdout.pipe(streamer.decimator.stdin)
+
 	//streamer.u8_to_f.stdout.pipe(streamer.dem.stdin)
 	//streamer.dem.stdout.pipe(streamer.decimator.stdin)
 	//streamer.decimator.stdout.pipe(streamer.f_to_s8.stdin);
 	streamer.decimator.stdout.pipe(res);
+
+	//streamBuffer.pipe(res);
 	//res.sendFile(AUDIO_FILE);
 
 	/* código de main-stream para referência, depois tirar
