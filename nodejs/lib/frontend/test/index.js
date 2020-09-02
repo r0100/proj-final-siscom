@@ -4,6 +4,11 @@ const io = require('socket.io-client');
 
 const playButton = document.querySelector('.play-button');
 const stopButton = document.querySelector('.stop-button');
+const amButton = document.querySelector('.am-demod');
+const fmButton = document.querySelector('.fm-demod');
+
+const setCenterFreqVal = document.querySelector('.center-freq-val');
+const setCenterFreqButton = document.querySelector('.set-center-freq')
 
 let audioCtx = new AudioContext();
 audioCtx.sampleRate = 48000;
@@ -68,6 +73,15 @@ function stop() {
     running = false;
 }
 
+function cleanAudioCache() {
+    if (outAudioStream) {
+        outAudioStream(null);
+        outAudioStream = Write(audioCtx.destination, {
+            channels: 1
+        });
+    }
+}
+
 // wire up play button
 playButton.onclick = function() {
     if (!running)
@@ -78,3 +92,25 @@ stopButton.onclick = function () {
     stop();
 }
 
+amButton.onclick = function () {
+    if (socket) { 
+        socket.emit('set_config', {demodulation: 'am'})
+        cleanAudioCache()
+    }
+}
+
+fmButton.onclick = function () {
+    if (socket) {
+        socket.emit('set_config', {demodulation: 'fm'})
+        cleanAudioCache()
+
+    }
+    
+}
+
+setCenterFreqButton.onclick = function () {
+    if (socket) {
+        socket.emit('set_config', {center_freq: setCenterFreqVal.valueAsNumber})
+        cleanAudioCache()
+    }
+}

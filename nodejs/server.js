@@ -8,6 +8,7 @@ const path = require('path')
 const fs = require('fs');
 
 const sdr = require('./lib/stream/main-stream.js');
+const { mySdr } = require('./lib/stream/main-stream.js');
 
 //const HOSTNAME = '127.0.0.1';
 const PORT = process.env.PORT||5000;
@@ -38,6 +39,22 @@ app.get('/test', (req, res) => {
 io.on('connection', (socket) => {
 	console.log('user connected');
 
+	socket.on('set_config', (config) => {
+		console.log(config)
+		const {center_freq, demodulation} = config;
+		if (center_freq) {
+			if (typeof center_freq === 'number') {
+				if (center_freq >= sdr.MIN_CENTER_FREQ &&
+					center_freq <= sdr.MAX_CENTER_FREQ) {
+						sdr.mySdr.setCenterFreq(center_freq)
+				}
+			}
+		}
+
+		if (demodulation) {
+			sdr.demodulateStream.changeDemodulator(demodulation)
+		}
+	})
 
 	socket.on('disconnect', () => {
 		console.log('User disconnected');
