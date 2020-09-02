@@ -65,7 +65,7 @@ io.on('connection', (socket) => {
 //#####SDR#####
 //#############
 sdr.outStream.on('data', (chunk) => {
-	console.log(chunk.length)
+	console.log('Data sent: %d bytes', chunk.length)
 	io.emit('raw_audio', chunk);
 })
 sdr.mySdr.start();

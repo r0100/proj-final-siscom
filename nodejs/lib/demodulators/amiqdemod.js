@@ -1,12 +1,13 @@
 'use strict'
 
-let aux = require('../auxiliary'); 
+const aux = require("../auxiliary");
+const { Transform } = require('stream');
 
-module.exports = {
-	iqdemod: amiqdemod
-}
+/****************
+export está no fim
+*****************/
 
-function amiqdemod(iq)
+function demod(iq)
 {
 	let buffer_size = iq[0].length;
 	let tmp = [];
@@ -29,11 +30,27 @@ function amiqdemod(iq)
 	return tmp;
 }
 
-/* Código do matlab para referência:
-function [y_AM_demodulated] = AM_IQ_Demod(y, fs)
-    [b, a] = butter(2, 18000/fs);
-    y_AM_demodulated = abs(y);
-    y_AM_demodulated = filter(b, a, y_AM_demodulated);
-    y_AM_demodulated = detrend(y_AM_demodulated);
-end
-*/
+let demodstreamff = new Transform({
+	transform(chunk, encoding, cb) {
+		//streamdemod espera um chunk como um buffer com os valores iq justapostos em sequência (i, q, i, q,...)
+		//os valores são um array de 8bits cada valor
+		chunk = new Float32Array(chunk.buffer);
+		//console.log(chunk);
+		let iq = [[], []];
+		for(let i = 0; i < chunk.length; i++) {
+			let channel = Number(i%2!==0);
+			iq[channel].push(chunk[i]);
+		}
+		let y = demod(iq, aux.audio_filter);
+		y = new Float32Array(y);
+		//console.log(y);
+	        this.push(Buffer.from(y.buffer));
+		cb();
+	}
+});
+
+module.exports = {
+	iqdemod: demod,
+	demod: demod,
+	demodstreamff, demodstreamff
+}

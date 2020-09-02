@@ -1,12 +1,13 @@
 'use strict'
 
-let aux = require("../auxiliary");
+const aux = require("../auxiliary");
+const { Transform } = require('stream');
 
-module.exports = {
-    iqdemod: lsbiqdemod
-};
+/****************
+export está no fim
+*****************/
 
-function lsbiqdemod(iq, fltr_coef) {
+function demod(iq, fltr_coef) {
 	let buffer_size = iq[0].length;
 	let filter_order = fltr_coef.length;
 	let y = [];
@@ -23,15 +24,27 @@ function lsbiqdemod(iq, fltr_coef) {
 	return y;
 }
 
-//acho que o hilbert não era realmente necessário
-/* Código do matlab para referência:
-function [y_LSB_demodulated] = LSB_IQ_Demod(y, b1, b2)
-    y_LSB_demodulated = 0;
-    %b1 = fir1(2, (fc+1000)/fs);
-    y_LSB_demodulated = filter(b1, 1, y);
-    y_LSB_demodulated = y_LSB_demodulated./abs(y_LSB_demodulated);
-    y_LSB_demodulated = real(y_LSB_demodulated) - imag(hilbert(imag(y_LSB_demodulated)));
-    %b2 = fir1(2, 18000/fs);
-    y_LSB_demodulated = filter(b2, 1, y_LSB_demodulated);
-end
-*/
+let demodstreamff = new Transform({
+	transform(chunk, encoding, cb) {
+		//streamdemod espera um chunk como um buffer com os valores iq justapostos em sequência (i, q, i, q,...)
+		//os valores são um array de 8bits cada valor
+		chunk = new Float32Array(chunk.buffer);
+		//console.log(chunk);
+		let iq = [[], []];
+		for(let i = 0; i < chunk.length; i++) {
+			let channel = Number(i%2!==0);
+			iq[channel].push(chunk[i]);
+		}
+		let y = demod(iq, aux.audio_filter);
+		y = new Float32Array(y);
+		//console.log(y);
+	        this.push(Buffer.from(y.buffer));
+		cb();
+	}
+});
+
+module.exports = {
+    iqdemod: demod, //soluçaõ temporaria para não quebrar código
+    demod: demod,
+    demodstreamff: demodstreamff //para uso com streams.
+};

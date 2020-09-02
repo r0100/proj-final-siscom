@@ -5,6 +5,7 @@ const RtlSdr = require('./sdr-rtl-stream');
 const { spawn } = require('child_process');
 const fmiqdemod = require('../demodulators/fmiqdemod'); 
 const amiqdemod = require('../demodulators/amiqdemod'); 
+const {decimateff, filterstreamff, prefilterstreamff, bin2float} = require('../auxiliary');
 
 //const path = require('path')
 //const audio_path = path.join(__dirname, './test');
@@ -54,7 +55,7 @@ class DemodulateStream extends Transform {
         
         
                 let iq = [[], []];
-                let f_chunk = convert_u8_f(chunk)
+                let f_chunk = new Float32Array(chunk.buffer)
         
                 
                 for(let i = 0; i < f_chunk.length; i+=2) {
@@ -185,12 +186,18 @@ f_to_s16.stdout.pipe(process.stdout) */
 
 //Using our demodulation
 const demodulateStream = new DemodulateStream()
-mySdr.stream.pipe(demodulateStream).pipe(decimator.stdin)
+//mySdr.stream.pipe(demodulateStream).pipe(decimator.stdin)
 //decimator.stdout.pipe(process.stdout)
 
 module.exports = {
     mySdr: mySdr,
-    outStream: decimator.stdout,
+    //outStream: decimator.stdout,
+    outStream: mySdr.stream
+    .pipe(bin2float)
+    .pipe(prefilterstreamff)
+    .pipe(demodulateStream)
+    .pipe(filterstreamff)
+    .pipe(decimateff),
     demodulateStream,
     MIN_CENTER_FREQ: 26e6,
     MAX_CENTER_FREQ: 1700e6
