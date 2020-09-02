@@ -5,6 +5,11 @@ export está no fim
 *****************/
 
 const { Transform } = require('stream');
+const am = require('./demodulators/amiqdemod.js');
+const fm = require('./demodulators/fmiqdemod.js');
+const lsb = require('./demodulators/lsbiqdemod.js');
+const usb = require('./demodulators/usbiqdemod.js');
+const no = require('./demodulators/noiqdemod.js');
 
 //filtro passa-baixa para 16kHz e fs de 300kHz
 const audio_filter = [0.0094678, 0.0242009, 0.0661356, 0.1248971, 0.1766591, 0.1972793, 0.1766591, 0.1248971, 0.0661356, 0.0242009, 0.0094678]; 
@@ -98,7 +103,6 @@ let prefilterstreamff = new Transform({
 	}
 });
 
-
 let bin2float = new Transform({
 	transform(chunk, encoding, cb) {
 		chunk = new Uint8Array(chunk);
@@ -135,7 +139,6 @@ let float2bin = new Transform({
 module.exports = {
 	fir_filter: fir_filter,
 	audio_filter: audio_filter,
-	pre_filter: pre_filter,
 	decimateff: decimateff,
 	filterstreamff: filterstreamff,
 	prefilterstreamff: prefilterstreamff,

@@ -19,7 +19,7 @@ function demod(iq, fltr_coef) {
 		tmp.push(Math.sqrt(i*i + q*q)); //tira a magnitude da amostra IQ
 		//filtro
 		if(count>filter_order) {
-			y[count] = aux.fir_filter(tmp, fltr_coef);
+			y[count] = fir_filter(tmp, fltr_coef);
 			tmp.shift();
 		} else {
 			y[count] = tmp[count];
@@ -56,3 +56,15 @@ module.exports = {
 	demod: demod,
 	demodstreamff, demodstreamff
 }
+
+function fir_filter(sinal, fltr_coef) {
+    let sinal_length = sinal.length;
+    let filter_order = fltr_coef.length;
+    let y = 0;
+
+    for(let i = 0; i<filter_order; i++)
+        y += sinal[filter_order-i]*fltr_coef[i];
+
+    return y;
+}
+

@@ -9,11 +9,7 @@ const fs = require('fs');
 
 //const sdr = require('./lib/stream/main-stream.js');
 const aux = require('./lib/auxiliary.js');
-const am = require('./lib/demodulators/amiqdemod.js');
-const fm = require('./lib/demodulators/fmiqdemod.js');
-const lsb = require('./lib/demodulators/lsbiqdemod.js');
-const usb = require('./lib/demodulators/usbiqdemod.js');
-const no = require('./lib/demodulators/noiqdemod.js');
+const dem = require('./lib/demodulators/demodulator.js');
 
 const PORT = process.env.PORT||5000;
 const URL_ADDR = '127.0.0.1:'+PORT;
@@ -21,12 +17,11 @@ const AUDIO_FILE = path.join(__dirname, '/public/audios/raw.dat');
 const GET_AUDIO = 'get-audio';
 const RECV_AUDIO = 'received-audio'
 const STOP_AUDIO = 'stop-audio';
+const AUDIO_EOF = 'audio-ended';
 
-let in_stream = fs.createReadStream(AUDIO_FILE)
-let demod;
+let in_stream;
 
 app.use(express.static('public'));
-
 
 app.get('/', (req, res) => {
 	res.sendFile(path.join(__dirname, 'public/html/index.html'));
@@ -51,45 +46,40 @@ io.on('connection', (socket) => {
 		console.log('Usuário ' + socket.id + ' requisitou audio');
 		console.log(usr_cfg);
 
-		let center_frq = Number(usr_cfg.frq) + (Number(usr_cfg.bnddr) - Number(usr_cfg.bndeq))/2;
+		stop();
+		reset();
+		//let center_frq = Number(usr_cfg.frq) + (Number(usr_cfg.bnddr) - Number(usr_cfg.bndeq))/2;
 		//sdr.set_center_freq(center_frq);
-		switch(usr_cfg.dmd) {
-			case 'am': demod = am.demodstreamff; break;
-			case 'fm': demod = fm.demodstreamff; break;
-			case 'lsb': demod = lsb.demodstreamff; break;
-			case 'usb': demod = usb.demodstreamff; break;
-			default: demod = no.demodstreamff; break;
-		}
-		//deve ter uma maneira melhor de fazer isso
-		console.log('Aplicando pipes');
-		if(usr_cfg.flt==='on') {
-			in_stream.pipe(aux.bin2float)
-				.pipe(aux.prefilterstreamff)
-				.pipe(demod)
-				.pipe(aux.filterstreamff)
-				.pipe(aux.decimateff)
-				.pipe(aux.float2bin)
-		} else {
-			in_stream.pipe(aux.bin2float)
-				.pipe(aux.prefilterstreamff)
-				.pipe(demod)
-				.pipe(aux.decimateff)
-				.pipe(aux.float2bin)
-		}
-		console.log('enviando dados');
 
-		aux.float2bin.on('data', (chunk) => {
-			//console.log('Enviando audio');
-			console.log(chunk);
-			io.emit(RECV_AUDIO, chunk);
-		})
+		console.log('Demodulação: ' + usr_cfg.dmd);
+		dem.demodulateff.changeDemodulator(usr_cfg.dmd)
 
+		fs.createReadStream(AUDIO_FILE).pipe(aux.bin2float).pipe(aux.prefilterstreamff).pipe(dem.demodulateff);
+		
+		if(usr_cfg.flt==='on')
+			dem.demodulateff.pipe(aux.filterstreamff).pipe(aux.decimateff);
+		else
+			dem.demodulateff.pipe(aux.decimateff);
 	})
 	socket.on(STOP_AUDIO, () => {
-		console.log('Usuário ' + socket.id + ' parou audio');
+		console.log('Usuário ' + socket.id + ' parou o audio');
 		stop();
+		reset();
+		in_stream = fs.createReadStream(AUDIO_FILE);
 	})
 })
+
+aux.decimateff.on('data', (chunk) => {
+	//console.log('Enviando audio');
+	//console.log(chunk);
+	io.emit(RECV_AUDIO, chunk);
+})
+aux.decimateff.on('end', () => {
+	io.emit(AUDIO_EOF);
+	stop();
+	reset();
+})
+
 
 //#############
 //#####SDR#####
@@ -108,11 +98,22 @@ http.listen(PORT, () => {
 });
 
 function stop() {
-	in_stream.pause();
+	if(in_stream) {
+		in_stream.pause();
+		in_stream.unpipe();
+		in_stream = null;
+	}
 	aux.bin2float.pause();
+	aux.bin2float.unpipe();
 	aux.prefilterstreamff.pause();
-	if(demod) demod.pause();
-	demod = null;
+	aux.prefilterstreamff.unpipe();
 	aux.filterstreamff.pause();
+	aux.filterstreamff.unpipe();
 	aux.float2bin.pause();
+	aux.float2bin.unpipe();
+}
+
+function reset() {
+	in_stream = null;
+	in_stream = fs.createReadStream(AUDIO_FILE);
 }
