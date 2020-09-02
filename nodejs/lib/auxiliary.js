@@ -27,7 +27,22 @@ function fir_filter(sinal, fltr_coef) {
 
     return y;
 }
+//versão que está na master
+let decimateff = new Transform({
+	transform(chunk, encoding, cb) {
+		//faz a decimação de 300kHz para 48kHz
+		//a função espera um sinal monofônico
+		let dec_ratio = 5; //Math.floor(300/48);
+		chunk = new Float32Array(chunk.buffer);
+		let output = [];
+		for(let i = 0; i < chunk.length; i++) if(i%dec_ratio===0) output.push(chunk[i]);
+		output = new Float32Array(output);
+		this.push(Buffer.from(output.buffer));
+		cb();
+	}
+});
 
+/* versão antiga
 let decimateff = new Transform({
 	transform(chunk, encoding, cb) {
 		//faz a decimação de 300kHz para 48kHz
@@ -41,6 +56,7 @@ let decimateff = new Transform({
 		cb();
 	}
 });
+*/
 
 let filterstreamff = new Transform({
 	transform(chunk, encoding, cb) {
