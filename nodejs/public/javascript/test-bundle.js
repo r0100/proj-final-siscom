@@ -23,7 +23,7 @@ let running = false;
 function start() {
     socket = io();
     running = true;
-    socket.on('raw_audio', (data) => {
+    socket.on('chunk_audio', (data) => {
         console.log(data)
 
         //Is necessary create the audio stream only when using it

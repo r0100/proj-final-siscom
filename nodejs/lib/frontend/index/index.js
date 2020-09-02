@@ -1,8 +1,10 @@
 const aump = require('./audio-manip.js');
 const info = require('./interface-update.js');
+const io = require('socket.io-client');
 
 document.addEventListener('DOMContentLoaded', () => {
-	//código relacionado com a parte do painel no topo da página
+
+	var socket = io(); 
 	info.initInfo();
 
 	let infoElementIds = ['on-off-sect', 'vol', 'frq', 'bndeq', 'bnddr', 'dmd-sect', 'flt'];
@@ -15,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 			switch(event.target.id) {
 				case 'onoff':
-					aump.playPause(event.target.value, info.usr_cfg.vol);
+					aump.playPause(event.target.value, info.usr_cfg, socket);
 					break;
 				case 'vol':
 					aump.updateVolume(event.target.value);
@@ -23,13 +25,11 @@ document.addEventListener('DOMContentLoaded', () => {
 				case 'frq':
 				case 'bndeq':
 				case 'bnddr':
-					info.sendBandServer(true);
-					break;
 				case 'dmd':
-					aump.updateDemod(event.target.value);
-					break;
+					//aump.updateDemod(event.target.value);
 				case 'flt':
-					aump.updateFilter(event.target.value);
+					//aump.updateFilter(event.target.value);
+					if(event.type==='change' && info.usr_cfg.onoff==='on') info.sendInfoServer(socket);
 					break;
 			}
 		}
