@@ -43,6 +43,7 @@ function start() {
         console.log(reason);
         stop()
     })
+    
     socket.on('connect_error', (reason) => {
         console.log(reason);
         stop()

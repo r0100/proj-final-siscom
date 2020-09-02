@@ -1,5 +1,9 @@
 'use strict'
 
+const GET_AUDIO = 'get-audio';
+const RECV_AUDIO = 'received-audio'
+const STOP_AUDIO = 'stop-audio';
+
 let usr_cfg = {
     onoff: "off",
     vol: "50",
@@ -7,7 +11,7 @@ let usr_cfg = {
     bndeq: 16,
     bnddr: 16,
     dmd: "nenhum",
-    flt: true,
+    flt: 'on',
 };
 
 module.exports = {
@@ -16,7 +20,7 @@ module.exports = {
 	printAll: printAll,
 	initInfo: initInfo,
 	updateInfoText: updateInfoText,
-	sendBandServer: sendBandServer
+	sendInfoServer: sendInfoServer
 }
 
 function returnInfoText(code, value) {
@@ -65,13 +69,6 @@ function updateInfoText(param) {
 	return param.value;
 }
 
-function sendBandServer(cond) {
-    if(!cond)
-		return;
-
-	let url = "/update-frq?frq=" + usr_cfg.frq + "&bndeq=" + usr_cfg.bndeq + "&bnddr=" + usr_cfg.bnddr;
-	let ajax = new XMLHttpRequest();
-	ajax.open("GET", url, true);
-	ajax.setRequestHeader('Content-Type', 'charset=utf-8');
-	ajax.send();
+function sendInfoServer(socket) {
+	socket.emit(GET_AUDIO, usr_cfg);
 }

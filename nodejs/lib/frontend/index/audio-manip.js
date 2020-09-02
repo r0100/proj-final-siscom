@@ -1,132 +1,104 @@
-const am = require('../../demodulators/amiqdemod.js');
-const fm = require('../../demodulators/fmiqdemod.js');
-const lsb = require('../../demodulators/lsbiqdemod.js');
-const usb = require('../../demodulators/usbiqdemod.js');
-const no = require('../../demodulators/noiqdemod.js');
-const aux = require('../../auxiliary.js');
-
 'use strict'
 
-const AUDIO = '/audio';
-//const LPF = 16000;
-//const NO_FILTER = 22050;
-const LPF = aux.audio_filter;
-const NO_FILTER = [1, 0, 0];
-const BUFFER_SIZE = 4096;
-const FS = 150000;
+const  Write  = require('web-audio-stream/write')
+const io = require('socket.io-client');
+
+const GET_AUDIO = 'get-audio';
+const RECV_AUDIO = 'received-audio'
+const STOP_AUDIO = 'stop-audio';
+const FS = 48e3;
+const CHANNEL_NUM = 1;
 
 let ctx;
 let source;
-let demod;
-let filter;
 let volume;
-let demodMethod = 'nenhum';
-
+let audio_elmt;
 
 module.exports = {
 	ctx: ctx,
 	playPause: playPause,
 	updateVolume: updateVolume,
-	updateDemod: updateDemod,
-	updateFilter: updateFilter
+//	updateDemod: updateDemod,
+//	updateFilter: updateFilter
 }
 
-function initAudio() {
+function initAudio(socket, cfg) {
 	let audioContext = window.AudioContext||window.webkitAudioContext;
 	ctx = new AudioContext({latencyHint: 'interactive', sampleRate: FS});
-	source = ctx.createBufferSource();
-	demod = ctx.createScriptProcessor(BUFFER_SIZE, 2, 2);
-	volume = ctx.createGain();
-	filter = LPF;
-	volume.gain.setValueAtTime(0.5, ctx.currentTime);
+	audio_elmt = document.querySelector('#audio-stream');
+	audio_elmt.volume = 0.5;
+	source = ctx.createMediaElementSource(audio_elmt);
 
-	function getAudio() {
-		request = new XMLHttpRequest();
-		request.open('GET', AUDIO, true);
-		request.responseType = 'arraybuffer';
-		request.onload = function() {
-			let audioData = request.response;
-			ctx.decodeAudioData(audioData, function(buffer) {
-				myBuffer = buffer;
-				source.buffer = myBuffer;
-			},
-			function(e){"Error with decoding audio data" + e.err});
+	socket.emit(GET_AUDIO, cfg);
+	socket.on(RECV_AUDIO, (audio_data) =>{
+		if(!out_stream) {
+			out_stream = Write(ctx.destination, {
+				channels: CHANNEL_NUM
+			});
 		}
-		request.send();
-	}
 
-	demod.onaudioprocess = function(audioProcessingEvent) {
-		if(filter==null) filter = LPF;
-		let inputBuffer = audioProcessingEvent.inputBuffer;
-		let outputBuffer = audioProcessingEvent.outputBuffer;
+		//Filtra buffers de tamanho errado
+		if (audio_data.byteLength % 2 !== 0)
+		    return;
 
-		let iq = [inputBuffer.getChannelData(0), inputBuffer.getChannelData(1)];
+		let audio_buffer = new Uint8Array(audio_data);
+		myArrayBuffer = ctx.createBuffer(CHANNEL_NUM, audio_buffer, FS);
+		//over-engineering is fun
+		for(let i = 0; i<CHANNEL_NUM; i++) myArrayBuffer.copyToChannel(audio_buffer, i);
+		//out_stream(myArrayBuffer);
 
-		switch(demodMethod) {
-			case 'am':
-				//console.log('am');
-				y = am.iqdemod(iq, filter);
-				break;
-			case 'fm':
-				//console.log('fm');
-				y = fm.iqdemod(iq, filter);
-				break;
-			case 'lsb':
-				//console.log('lsb');
-				y = lsb.iqdemod(iq, filter);
-				break;
-			case 'usb':
-				//console.log('usb');
-				y = usb.iqdemod(iq, filter);
-				break;
-			default:
-				y = no.iqdemod(iq, filter);
-				break;
-		}
-		//console.log('Vetor de saída: ');
-		//console.log(y);
-		let outData = [outputBuffer.getChannelData(0), outputBuffer.getChannelData(1)];
-		for(let i = 0; i<outData[0].length; i++) {
-			outData[0][i] = y[i];
-			outData[1][i] = y[i];
-		}
-	}
+		source.buffer = myArrayBuffer;
+		source.connect(ctx.destination);
+		audio_elmt.play();
+	});
 
-	getAudio();
+	socket.on('error', (reason) => {
+		console.log('Erro genérico')
+		console.log(reason);
+		stop()
+	})
 
-	source.loop = true;
-	source.connect(demod).connect(volume).connect(ctx.destination);
-	source.start();
+	socket.on('connect_error', (reason) => {
+		console.log('Erro na conexão');
+		console.log(reason);
+		stop()
+	})
+
+	socket.on('disconnect', (reason) => {
+		console.log('Erro, serviço disconectado');
+		console.log(reason);
+		stop();
+	})
+
 }
 
-function playPause(onoff, vol) {
+function playPause(onoff, cfg, socket) {
+	console.log(cfg);
 	if(onoff==='on') {
-		updateVolume(vol);
-		initAudio();
+		updateVolume(cfg.vol);
+		initAudio(socket, cfg);
 	} else {
-		volume.gain.setValueAtTime(0, ctx.currentTime);
+		socket.emit(STOP_AUDIO);
+		audio_elmt.pause();
 		source.disconnect()
-		demod.disconnect()
-		volume.disconnect()
 		ctx.destination.disconnect();
 		ctx = null;
-		volume = null;
 		source=null;
-		filter=null;
 	}
 }
 
 function updateVolume(vol) {
 	console.log('Novo valor de volume: ' + vol);
 	if(volume)
-		volume.gain.setValueAtTime(Number(vol)/100, ctx.currentTime);
+		audio_elmt.volume = Number(vol)/100;
 }
-
+/*
 function updateDemod(method) {
 	console.log('Mudando para demodulação ' + method);
 	demodMethod = method;
 }
-
+*/
+/*
 function updateFilter(fltCond) {
 	console.log('Filtro em ' + fltCond);
 	if(!filter)
@@ -139,3 +111,4 @@ function updateFilter(fltCond) {
 	}
 	console.log(filter);
 }
+*/

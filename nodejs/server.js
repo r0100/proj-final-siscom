@@ -7,13 +7,14 @@ const io = require('socket.io')(http);
 const path = require('path')
 const fs = require('fs');
 
-const sdr = require('./lib/stream/main-stream.js');
+//const sdr = require('./lib/stream/main-stream.js');
 
-//const HOSTNAME = '127.0.0.1';
 const PORT = process.env.PORT||5000;
-//const URL_ADDR = 'proj-final-siscom.herokuapp.com';
 const URL_ADDR = '127.0.0.1:'+PORT;
-const AUDIO_FILE = path.join(__dirname, '/public/audios/test');
+const AUDIO_FILE = path.join(__dirname, '/public/audios/raw.dat');
+const GET_AUDIO = 'get-audio';
+const RECV_AUDIO = 'received-audio'
+const STOP_AUDIO = 'stop-audio';
 
 
 app.use(express.static('public'));
@@ -21,11 +22,6 @@ app.use(express.static('public'));
 
 app.get('/', (req, res) => {
 	res.sendFile(path.join(__dirname, 'public/html/index.html'));
-});
-
-app.get('/audio', async (req, res) => {
-	
-	res.sendFile(AUDIO_FILE);
 });
 
 app.get('/test', (req, res) => {
@@ -36,31 +32,31 @@ app.get('/test', (req, res) => {
 //###SOCKET###
 //############
 io.on('connection', (socket) => {
-	console.log('user connected');
+	console.log('Usuário ' + socket.id + ' conectou');
 
 
 	socket.on('disconnect', () => {
-		console.log('User disconnected');
+		console.log('Usuário ' + socket.id + ' disconectou');
+	})
+	socket.on(GET_AUDIO, (usr_cfg) => {
+		console.log('Usuário ' + socket.id + ' requisitou audio');
+		console.log(usr_cfg);
+	})
+	socket.on(STOP_AUDIO, () => {
+		console.log('Usuário ' + socket.id + ' parou audio');
 	})
 })
 
 //#############
 //#####SDR#####
 //#############
+/*
 sdr.outStream.on('data', (chunk) => {
 	console.log(chunk.length)
 	io.emit('raw_audio', chunk);
 })
 sdr.mySdr.start();
-
-app.get('/update-frq*', (req, res) => {
-	let new_band = {};
-	req.url.split('?')[1].split('&').forEach((eqtn) => {
-		let cfg = eqtn.split('=');
-		new_band[cfg[0]] = Number(cfg[1]);
-	});
-	console.log(new_band);
-});
+*/
 
 http.listen(PORT, () => {
 	console.log('Server working at port ' + PORT);
