@@ -14,6 +14,7 @@ let ctx;
 let source;
 let volume;
 let audio_elmt;
+let out_stream;
 
 module.exports = {
 	ctx: ctx,
@@ -27,23 +28,34 @@ function initAudio(socket, cfg) {
 	let audioContext = window.AudioContext||window.webkitAudioContext;
 	ctx = new AudioContext({latencyHint: 'interactive', sampleRate: FS});
 	audio_elmt = document.querySelector('#audio-stream');
+	console.log(audio_elmt);
 	audio_elmt.volume = 0.5;
 	source = ctx.createMediaElementSource(audio_elmt);
 
 	socket.emit(GET_AUDIO, cfg);
-	socket.on(RECV_AUDIO, (audio_data) =>{
+	socket.on(RECV_AUDIO, (audio_data) => {
+		/*
 		if(!out_stream) {
 			out_stream = Write(ctx.destination, {
 				channels: CHANNEL_NUM
 			});
 		}
+		*/
 
 		//Filtra buffers de tamanho errado
 		if (audio_data.byteLength % 2 !== 0)
 		    return;
 
-		let audio_buffer = new Uint8Array(audio_data);
-		myArrayBuffer = ctx.createBuffer(CHANNEL_NUM, audio_buffer, FS);
+		let bin_buffer = new Uint8Array(audio_data);
+		console.log('bin_buffer');
+		console.log(bin_buffer);
+		let audio_buffer = [];
+		audio_buffer = bin_buffer.map((sample) => {return (sample/127.5 -1)});
+		audio_buffer = new Float32Array(audio_buffer);
+		console.log('audio_buffer');
+		console.log(audio_buffer);
+
+		let myArrayBuffer = ctx.createBuffer(CHANNEL_NUM, audio_buffer.length, FS);
 		//over-engineering is fun
 		for(let i = 0; i<CHANNEL_NUM; i++) myArrayBuffer.copyToChannel(audio_buffer, i);
 		//out_stream(myArrayBuffer);
@@ -54,37 +66,39 @@ function initAudio(socket, cfg) {
 	});
 
 	socket.on('error', (reason) => {
+		playPause('off', cfg, socket);
 		console.log('Erro genérico')
 		console.log(reason);
-		stop()
 	})
 
 	socket.on('connect_error', (reason) => {
+		playPause('off', cfg, socket);
 		console.log('Erro na conexão');
 		console.log(reason);
-		stop()
 	})
 
 	socket.on('disconnect', (reason) => {
+		playPause('off', cfg, socket);
 		console.log('Erro, serviço disconectado');
 		console.log(reason);
-		stop();
 	})
 
 }
 
 function playPause(onoff, cfg, socket) {
-	console.log(cfg);
+	//console.log(cfg);
 	if(onoff==='on') {
 		updateVolume(cfg.vol);
 		initAudio(socket, cfg);
 	} else {
 		socket.emit(STOP_AUDIO);
 		audio_elmt.pause();
-		source.disconnect()
-		ctx.destination.disconnect();
-		ctx = null;
-		source=null;
+		if(source && ctx) {
+			source.disconnect()
+			ctx.destination.disconnect();
+			ctx = null;
+			source=null;
+		}
 	}
 }
 
