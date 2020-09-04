@@ -1,3 +1,7 @@
+%este código é um simulacro de uma stream de áudio, ele pega um pedaço
+%de um arquivo de áudio, demodula-o e toca-o. No meio tempo a operação
+%é repetida para uma nova amostra e espera-se o fim do áudio anterior
+%para tocar o novo, repetindo-e o processo até o fim
 clear; clc;
 on = 1;
 buffer_time = 0.2; %segundos
@@ -17,6 +21,8 @@ demod_type = 2;
 %3->LSB
 %4->USB
 
+%para otimização do código, os filtros passa-baixa e diferenciador
+%são calculados antes do stream
 a = 1;
 fc = fs/4;
 b_fm = firls(30,[0 .9],[0 1],'differentiator'); %design differentiater 
@@ -26,6 +32,9 @@ b_usb = fir1(2, (fc+18000)/fs);
 
 audio_file = readsdrwav('RadioArgentina.wav', 0);
 disp('Iniciando');
+%o ritmo em que os áudios são tocados é regulado pelas funções
+%tic e toc do matlab que calculam o tempo decorrido a chamada
+%de tic e a chamada de toc
 tic;
 while(on) 
     buffer = audio_file(sample_window(1):sample_window(2), 1);

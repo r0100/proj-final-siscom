@@ -18,6 +18,7 @@ const GET_AUDIO = 'get-audio';
 const RECV_AUDIO = 'received-audio'
 const STOP_AUDIO = 'stop-audio';
 const AUDIO_EOF = 'audio-ended';
+const UPDATE_CFG = 'update-cfg';
 
 let in_stream;
 
@@ -43,15 +44,15 @@ io.on('connection', (socket) => {
 		stop();
 	})
 	socket.on(GET_AUDIO, (usr_cfg) => {
-		console.log('Usuário ' + socket.id + ' requisitou audio');
+		//console.log('Usuário ' + socket.id + ' requisitou audio');
 		console.log(usr_cfg);
 
 		stop();
 		reset();
+
 		//let center_frq = Number(usr_cfg.frq) + (Number(usr_cfg.bnddr) - Number(usr_cfg.bndeq))/2;
 		//sdr.set_center_freq(center_frq);
 
-		console.log('Demodulação: ' + usr_cfg.dmd);
 		dem.demodulateff.changeDemodulator(usr_cfg.dmd)
 
 		fs.createReadStream(AUDIO_FILE).pipe(aux.bin2float).pipe(aux.prefilterstreamff).pipe(dem.demodulateff);
@@ -62,24 +63,29 @@ io.on('connection', (socket) => {
 			dem.demodulateff.pipe(aux.decimateff);
 	})
 	socket.on(STOP_AUDIO, () => {
-		console.log('Usuário ' + socket.id + ' parou o audio');
+		//console.log('Usuário ' + socket.id + ' parou o audio');
 		stop();
 		reset();
 		in_stream = fs.createReadStream(AUDIO_FILE);
 	})
+	socket.on(UPDATE_CFG, (usr_cfg) => {
+		console.log('Atualizando configuração');
+		console.log(usr_cfg);
+		//let center_frq = Number(usr_cfg.frq) + (Number(usr_cfg.bnddr) - Number(usr_cfg.bndeq))/2;
+		//sdr.set_center_freq(center_frq);
+		dem.demodulateff.changeDemodulator(usr_cfg.dmd);
+	})
+	aux.decimateff.on('data', (chunk) => {
+		//console.log('Enviando audio');
+		//console.log(chunk);
+		io.emit(RECV_AUDIO, chunk);
+	})
+	aux.decimateff.on('end', () => {
+		io.emit(AUDIO_EOF);
+		stop();
+		reset();
+	})
 })
-
-aux.decimateff.on('data', (chunk) => {
-	//console.log('Enviando audio');
-	//console.log(chunk);
-	io.emit(RECV_AUDIO, chunk);
-})
-aux.decimateff.on('end', () => {
-	io.emit(AUDIO_EOF);
-	stop();
-	reset();
-})
-
 
 //#############
 //#####SDR#####
@@ -109,11 +115,12 @@ function stop() {
 	aux.prefilterstreamff.unpipe();
 	aux.filterstreamff.pause();
 	aux.filterstreamff.unpipe();
+	dem.demodulateff.pause();
+	dem.demodulateff.unpipe();
 	aux.float2bin.pause();
 	aux.float2bin.unpipe();
 }
 
 function reset() {
-	in_stream = null;
 	in_stream = fs.createReadStream(AUDIO_FILE);
 }
