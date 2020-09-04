@@ -7,22 +7,16 @@ const io = require('socket.io')(http);
 const path = require('path')
 const fs = require('fs');
 
-//const sdr = require('./lib/stream/main-stream.js');
 const aux = require('./lib/auxiliary.js');
-
 const dem = require('./lib/demodulators/demodulator.js');
-//const sdr = require('./lib/stream/main-stream');
+const sdr = require('./lib/stream/main-stream');
 
 const PORT = process.env.PORT||5000;
 const URL_ADDR = '127.0.0.1:'+PORT;
 const AUDIO_FILE = path.join(__dirname, '/public/audios/raw.dat');
-const GET_AUDIO = 'get-audio';
-const RECV_AUDIO = 'received-audio'
-const STOP_AUDIO = 'stop-audio';
-const AUDIO_EOF = 'audio-ended';
-const UPDATE_CFG = 'update-cfg';
+const SEND_AUDIO = 'received-audio'
 
-let in_stream;
+const UPDATE_CFG = 'update-cfg';
 
 app.use(express.static('public'));
 
@@ -48,7 +42,31 @@ io.on('connection', (socket) => {
 		console.log(usr_cfg);
 		//let center_frq = Number(usr_cfg.frq) + (Number(usr_cfg.bnddr) - Number(usr_cfg.bndeq))/2;
 		//sdr.set_center_freq(center_frq);
-		dem.demodulateff.changeDemodulator(usr_cfg.dmd);
+		//dem.demodulateff.changeDemodulator(usr_cfg.dmd);
+
+		const { dmd } = usr_cfg;
+
+		const flt = (usr_cfg.flt==='on')?true:false;
+
+		//Convert string to number
+		const frq =  Number(usr_cfg.frq)*1e6;
+
+		if (frq) {
+			if (frq >= sdr.MIN_CENTER_FREQ &&
+				frq <= sdr.MAX_CENTER_FREQ) {
+					//console.log(frq);
+					sdr.mySdr.setCenterFreq(frq);
+			}
+		}
+	
+		if (dmd) {
+			dem.demodulateff.changeDemodulator(dmd);
+		}
+
+		if (flt !== undefined) {
+			dem.demodulateff.changeFilter(flt);
+		}
+
 	})
 	/*
 	socket.on('set_config', (config) => {
@@ -73,21 +91,21 @@ io.on('connection', (socket) => {
 //#############
 //#####SDR#####
 //#############
-/*
+
 sdr.outStream
-.pipe(dem.demdulateff)
+.pipe(dem.demodulateff)
 .pipe(aux.decimateff).on('data', (chunk) => {
 	//console.log('Enviando audio');
 	console.log(chunk.length);
-	io.emit(RECV_AUDIO, chunk);
+	io.emit(SEND_AUDIO, chunk);
 })
 
 /* sdr.outStream.on('data', (chunk) => {
 	console.log(chunk.length)
 	io.emit('chunk_audio', chunk);
-})
+}) */
 sdr.mySdr.start();
-*/
+
 
 http.listen(PORT, () => {
 	console.log('Server working at port ' + PORT);

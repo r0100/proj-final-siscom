@@ -12,20 +12,19 @@
   <body>
     <div id="corpo-princ">
       <h1 id="titulo-princ">Player online de SDR</h1>
-      <h2 id="subtitulo-princ">Versão simples para testes</h2>
+      <h2 id="subtitulo-princ"></h2>
       <br/><br/>
 
       <!--Por padrão, os ids dentro de info-text são o nome do id do input ao qual se referem seguido de show (e.g. frq==>frqshow)-->
       <div id="info-text">
-	<p id="errorshow"></p>
-	<p id="frqshow"></p>
-	<p id="bndeqshow"></p>
-	<p id="bnddrshow"></p>
-	<p id="dmdshow"></p>
-	<p id="onoffshow"></p>
-	<p id="volshow"></p>
-	<p id="fltshow"></p>
-
+		<p id="errorshow"></p>
+		<p id="frqshow"></p>
+		<p id="bndeqshow"></p>
+		<p id="bnddrshow"></p>
+		<p id="dmdshow"></p>
+		<p id="onoffshow"></p>
+		<p id="volshow"></p>
+		<p id="fltshow"></p>
       </div>
 
       <br><br>
@@ -53,19 +52,27 @@
 	<label for="freq-sint">Frequência de sintonização (MHz)</label>
 	<input
 	  id="frq"
-	  name="freq-sint" type="range" value="97.5" min="85" max="110" step="0.5"
-	  ><br><br>
+	  name="freq-sint" type="range" value="850" min="0.5" max="1700" step="0.05"
+	  >
 
+	<input type="text" name="freq-sint-text" id="frqtext" value="850">
+
+	<br><br>
+	<!--
 	<label for="banda-esq">Banda esquerda</label>
 	<input
 	  id="bndeq"
-	  name="banda-esq" type="range" value="16" min="0" max="25" step="0.5"
+	  name="banda-esq" type="range" value="16" min="0" max="75" step="0.5"
 	  />
+	<input type="text" name="banda-esq-text" id="bndeq" value="16">
 	<label for="banda-dir">Banda direita</label>
 	<input
 	  id="bnddr"
-	  name="banda-dir" type="range" value="16" min="0" max="25" step="0.5"
-	  /><br><br>
+	  name="banda-dir" type="range" value="16" min="0" max="75" step="0.5"
+	  />
+	 <input type="text" name="banda-dir-text" id="bnddr" value="16"> 
+	  <br><br>
+	-->
 
 	<!--Método de demodulação-->
 	<!--O id 'dmd' está repetido, deixar assim-->
@@ -92,8 +99,6 @@
 	  id='flt' name="filtro-ruido" type="checkbox" checked="checked"
 	  />
 	<label for="filtro-ruido">Filtrar ruido</label><br>
-
-	<input id="submit-btn" type="submit" hidden/>
       </form>
     </div>
 

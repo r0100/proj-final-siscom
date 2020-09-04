@@ -2,7 +2,7 @@
 let usr_cfg = {
     onoff: "off",
     vol: "50",
-    frq: (85+110)/2,
+    frq: 850, //em MHz
     bndeq: 16,
     bnddr: 16,
     dmd: "nenhum",

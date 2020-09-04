@@ -1,16 +1,15 @@
 const aump = require('./audio-manip.js');
 const info = require('./interface-update.js');
-const io = require('socket.io-client');
 
 document.addEventListener('DOMContentLoaded', () => {
 
-	
 	info.initInfo();
 
-	let infoElementIds = ['on-off-sect', 'vol', 'frq', 'bndeq', 'bnddr', 'dmd-sect', 'flt'];
+	let infoElementIds = ['on-off-sect', 'vol', 'frq', 'dmd-sect', 'flt'];
+
 	infoElementIds.forEach((id) => {
 		function callUpdate() {
-			if(id==='flt')
+			if(event.target.id==='flt')
 				event.target.value = (event.target.checked===true)?'on':'off';
 
 			info.usr_cfg[event.target.id] = info.updateInfoText(event.target);			
@@ -33,10 +32,10 @@ document.addEventListener('DOMContentLoaded', () => {
 		}
 
 		switch(id) {
-			case 'vol':
 			case 'frq':
 			case 'bndeq':
 			case 'bnddr':
+			case 'vol':
 				getById(id).onmousemove = callUpdate;
 			case 'on-off-sect':
 			case 'dmd-sect':

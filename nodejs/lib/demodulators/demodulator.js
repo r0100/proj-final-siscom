@@ -45,7 +45,7 @@ class DemodulateStream extends Transform {
                 cb();
             }
         })
-        this.type = 'fm';
+        this.type = 'nenhum';
         this.filter = true;
     }
 

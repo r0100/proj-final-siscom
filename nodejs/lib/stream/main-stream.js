@@ -196,7 +196,7 @@ module.exports = {
         .pipe(bin2float)
         .pipe(prefilterstreamff),
     demodulateStream,
-    MIN_CENTER_FREQ: 26e6,
+    MIN_CENTER_FREQ: 500e3,
     MAX_CENTER_FREQ: 1700e6
 }
 
