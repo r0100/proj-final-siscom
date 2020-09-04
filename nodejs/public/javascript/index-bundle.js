@@ -3,10 +3,12 @@
 
 const  Write  = require('web-audio-stream/write')
 const io = require('socket.io-client');
+
 const GET_AUDIO = 'get-audio';
 const RECV_AUDIO = 'received-audio'
 const STOP_AUDIO = 'stop-audio';
 const AUDIO_EOF = 'audio-ended';
+const UPDATE_CFG = 'update-cfg';
 const FS = 48e3;
 const CHANNEL_NUM = 1;
 
@@ -22,20 +24,10 @@ module.exports = {
 	ctx: ctx,
 	playPause: playPause,
 	updateVolume: updateVolume,
-//	updateDemod: updateDemod,
-//	updateFilter: updateFilter
+	sendInfoServer: sendInfoServer
 }
 
 function initAudio(cfg) {
-	//let audioContext = window.AudioContext||window.webkitAudioContext;
-	//source = ctx.createBufferSource();
-	//volume = ctx.createGain();
-	//source.loop = false;
-	//source.playbackRate.value = 0.99;
-	//volume.gain.setValueAtTime(0.5, ctx.currentTime);
-	//source.connect(volume).connect(ctx.destination);
-	//source.start();
-
     socket = io();
 
 	console.log('pedindo audio');
@@ -95,7 +87,7 @@ function initAudio(cfg) {
 	})
 }
 
-function playPause(onoff, cfg, socket) {
+function playPause(onoff, cfg) {
 	if(onoff==='on') {
 		console.log('Ligando o audio')
 		//updateVolume(cfg.vol);
@@ -103,26 +95,9 @@ function playPause(onoff, cfg, socket) {
 	} else {
 		console.log('Desligando o audio');
 		//socket.emit(STOP_AUDIO);
-		/* if(volume) {
-			volume.gain.setValueAtTime(0, ctx.currentTime);
-			volume.disconnect();
-		} */
-
 		stop();
-		/* if(source) {
-			source.loop = false;
-			source.stop();
-			source.disconnect();
-		} */
-		//if(ctx) ctx.destination.disconnect();
-		//ctx = null;
-		//volume = null;
-		//source=null;
-
-
 	}
 }
-
 
 function stop() {
     if (socket)
@@ -152,35 +127,12 @@ function updateVolume(vol) {
 		volume.gain.setValueAtTime(Number(vol)/100, ctx.currentTime);
 }
 
-/*
-function updateDemod(method) {
-	console.log('Mudando para demodulação ' + method);
-	demodMethod = method;
+function sendInfoServer(cfg) {
+	//socket.emit(STOP_AUDIO);
+	socket.emit(UPDATE_CFG, cfg);
 }
-*/
-/*
-function updateFilter(fltCond) {
-	console.log('Filtro em ' + fltCond);
-	if(!filter)
-		return;
-
-	if(fltCond==='on') {
-		filter = LPF
-	} else {
-		filter = NO_FILTER;
-	}
-	console.log(filter);
-}
-*/
-
 },{"socket.io-client":60,"web-audio-stream/write":78}],2:[function(require,module,exports){
 'use strict'
-
-const GET_AUDIO = 'get-audio';
-const RECV_AUDIO = 'received-audio'
-const STOP_AUDIO = 'stop-audio';
-const UPDATE_CFG = 'update-cfg';
-
 let usr_cfg = {
     onoff: "off",
     vol: "50",
@@ -196,8 +148,7 @@ module.exports = {
 	returnInfoText: returnInfoText,
 	printAll: printAll,
 	initInfo: initInfo,
-	updateInfoText: updateInfoText,
-	sendInfoServer: sendInfoServer
+	updateInfoText: updateInfoText
 }
 
 function returnInfoText(code, value) {
@@ -246,11 +197,6 @@ function updateInfoText(param) {
 	return param.value;
 }
 
-function sendInfoServer(socket) {
-	//socket.emit(STOP_AUDIO);
-	socket.emit(UPDATE_CFG, usr_cfg);
-}
-
 },{}],3:[function(require,module,exports){
 const aump = require('./audio-manip.js');
 const info = require('./interface-update.js');
@@ -271,7 +217,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 			switch(event.target.id) {
 				case 'onoff':
-					aump.playPause(event.target.value, info.usr_cfg, socket);
+					aump.playPause(event.target.value, info.usr_cfg);
 					break;
 				case 'vol':
 					aump.updateVolume(event.target.value);
@@ -280,10 +226,8 @@ document.addEventListener('DOMContentLoaded', () => {
 				case 'bndeq':
 				case 'bnddr':
 				case 'dmd':
-					//aump.updateDemod(event.target.value);
 				case 'flt':
-					//aump.updateFilter(event.target.value);
-					//if(event.type==='change' && info.usr_cfg.onoff==='on') info.sendInfoServer(socket);
+					if(event.type==='change' && info.usr_cfg.onoff==='on') aump.sendInfoServer(info.usr_cfg);
 					break;
 			}
 		}

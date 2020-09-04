@@ -60,5 +60,5 @@ class DemodulateStream extends Transform {
 }
 
 module.exports = {
-	demdulateff: new DemodulateStream()
+	demodulateff: new DemodulateStream()
 }

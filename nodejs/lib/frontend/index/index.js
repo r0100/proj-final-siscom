@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 			switch(event.target.id) {
 				case 'onoff':
-					aump.playPause(event.target.value, info.usr_cfg, socket);
+					aump.playPause(event.target.value, info.usr_cfg);
 					break;
 				case 'vol':
 					aump.updateVolume(event.target.value);
@@ -26,10 +26,8 @@ document.addEventListener('DOMContentLoaded', () => {
 				case 'bndeq':
 				case 'bnddr':
 				case 'dmd':
-					//aump.updateDemod(event.target.value);
 				case 'flt':
-					//aump.updateFilter(event.target.value);
-					//if(event.type==='change' && info.usr_cfg.onoff==='on') info.sendInfoServer(socket);
+					if(event.type==='change' && info.usr_cfg.onoff==='on') aump.sendInfoServer(info.usr_cfg);
 					break;
 			}
 		}

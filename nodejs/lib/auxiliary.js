@@ -23,44 +23,6 @@ function fir_filter(sinal, fltr_coef) {
     return y;
 }
 
-class Filter extends Transform {
-	constructor() {
-		super({
-			let output_buffer;
-			if(this.state==='off') {
-				output_buffer = chunk
-			} else {
-				chunk = new Float32Array(chunk.buffer);
-				//console.log(chunk);
-				let tmp = [];
-				let y = [];
-				let filter_order = audio_filter.length;
-
-				for(let i = 0; i < chunk.length; i++) {
-					tmp.push(chunk[i]);
-					if(i > filter_order) {
-						y[i] = fir_filter(tmp, audio_filter);
-						tmp.shift();
-					} else {
-						y[i] = tmp[i];
-					}
-				}
-
-				y = new Float32Array(y);
-				//console.log(y);
-				output_buffer = Buffer.from(y.buffer);
-			}
-
-			this.push(output_buffer);
-			cb();
-		})
-		this.state = 'on';
-	}
-
-	changeState(newState) {
-		this.state = newState;
-	}
-}
 //versão que está na master
 let decimateff = new Transform({
 	transform(chunk, encoding, cb) {
@@ -119,6 +81,7 @@ let filterstreamff = new Transform({
 		cb();
 	}
 });
+
 
 let prefilterstreamff = new Transform({
 	transform(chunk, encoding, cb) {
@@ -192,7 +155,7 @@ module.exports = {
 	fir_filter: fir_filter,
 	audio_filter: audio_filter,
 	decimateff: decimateff,
-	filterstreamff: new Filter(),
+	filterstreamff: filterstreamff,
 	prefilterstreamff: prefilterstreamff,
 	bin2float: bin2float,
 	float2bin: float2bin,
