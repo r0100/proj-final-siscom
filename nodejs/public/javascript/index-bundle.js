@@ -3,7 +3,6 @@
 
 const  Write  = require('web-audio-stream/write')
 const io = require('socket.io-client');
-
 const GET_AUDIO = 'get-audio';
 const RECV_AUDIO = 'received-audio'
 const STOP_AUDIO = 'stop-audio';
@@ -11,8 +10,12 @@ const AUDIO_EOF = 'audio-ended';
 const FS = 48e3;
 const CHANNEL_NUM = 1;
 
-let ctx;
-let source;
+let ctx = new AudioContext({latencyHint: 'interactive', sampleRate: FS});
+let outAudioStream;
+let socket; 
+
+
+//let source;
 let volume;
 
 module.exports = {
@@ -23,25 +26,35 @@ module.exports = {
 //	updateFilter: updateFilter
 }
 
-function initAudio(socket, cfg) {
-	let audioContext = window.AudioContext||window.webkitAudioContext;
-	ctx = new AudioContext({latencyHint: 'interactive', sampleRate: FS});
-	source = ctx.createBufferSource();
-	volume = ctx.createGain();
-	source.loop = true;
-	source.playbackRate.value = 0.99;
-	volume.gain.setValueAtTime(0.5, ctx.currentTime);
-	source.connect(volume).connect(ctx.destination);
-	source.start();
+function initAudio(cfg) {
+	//let audioContext = window.AudioContext||window.webkitAudioContext;
+	//source = ctx.createBufferSource();
+	//volume = ctx.createGain();
+	//source.loop = false;
+	//source.playbackRate.value = 0.99;
+	//volume.gain.setValueAtTime(0.5, ctx.currentTime);
+	//source.connect(volume).connect(ctx.destination);
+	//source.start();
+
+    socket = io();
 
 	console.log('pedindo audio');
-	socket.emit(GET_AUDIO, cfg);
-	socket.on(RECV_AUDIO, (audio_data) => {
-		//console.log('dados recebidos');
+	//socket.emit(GET_AUDIO, cfg);
 
-		let shift_audio = false;
-		//Filtra buffers de tamanho errado
-		if (audio_data.byteLength % 2 !== 0) shift_audio = true;
+	socket.on(RECV_AUDIO, (audio_data) => {
+		console.log(audio_data.length);
+
+		//Is necessary create the audio stream only when using it
+        // because it keeps raising incorrect input error
+        if (!outAudioStream) {
+            outAudioStream = Write(ctx.destination, {
+                channels: 1
+            });
+        }
+
+		 //Filter wrong buffers
+		 if (data.byteLength % 2 !== 0)
+		 	return;
 
 		if(ctx===null) {
 			console.log('Erro: ctx (AudioContext) nulo');
@@ -49,7 +62,6 @@ function initAudio(socket, cfg) {
 		}
 
 		let audio_buffer = new Float32Array(audio_data);
-		if(shift_audio) audio_buffer.shift();
 		//console.log(audio_buffer);
 
 		let myArrayBuffer = ctx.createBuffer(CHANNEL_NUM, audio_buffer.length, FS);
@@ -57,8 +69,7 @@ function initAudio(socket, cfg) {
 		for(let i = 0; i<CHANNEL_NUM; i++) myArrayBuffer.copyToChannel(audio_buffer, i);
 		//out_stream(myArrayBuffer);
 
-			source.buffer = myArrayBuffer;
-			console.log(source.buffer);
+		outAudioStream(myArrayBuffer)
 	});
 
 	socket.on(AUDIO_EOF, () => {
@@ -70,35 +81,68 @@ function initAudio(socket, cfg) {
 		console.log('Erro genérico')
 		console.log(reason);
 	})
-socket.on('connect_error', (reason) => {
-	playPause('off', cfg, socket);
-	console.log('Erro na conexão');
-	console.log(reason);
-})
+
+	socket.on('connect_error', (reason) => {
+		playPause('off', cfg, socket);
+		console.log('Erro na conexão');
+		console.log(reason);
+	})
+
+	socket.on('disconnect', (reason) => {
+		playPause('off', cfg, socket);
+		console.log('Erro, serviço disconectado');
+		console.log(reason);
+	})
 }
 
 function playPause(onoff, cfg, socket) {
 	if(onoff==='on') {
 		console.log('Ligando o audio')
-		updateVolume(cfg.vol);
-		initAudio(socket, cfg);
+		//updateVolume(cfg.vol);
+		initAudio(cfg);
 	} else {
 		console.log('Desligando o audio');
-		socket.emit(STOP_AUDIO);
-		if(volume) {
+		//socket.emit(STOP_AUDIO);
+		/* if(volume) {
 			volume.gain.setValueAtTime(0, ctx.currentTime);
 			volume.disconnect();
-		}
-		if(source) {
+		} */
+
+		stop();
+		/* if(source) {
 			source.loop = false;
 			source.stop();
 			source.disconnect();
-		}
-		if(ctx) ctx.destination.disconnect();
-		ctx = null;
-		volume = null;
-		source=null;
+		} */
+		//if(ctx) ctx.destination.disconnect();
+		//ctx = null;
+		//volume = null;
+		//source=null;
+
+
 	}
+}
+
+
+function stop() {
+    if (socket)
+        socket.close();
+
+    socket = null;
+
+    if (outAudioStream)
+        outAudioStream(null);
+
+    outAudioStream = null;
+}
+
+function cleanAudioCache() {
+    if (outAudioStream) {
+        outAudioStream(null);
+        outAudioStream = Write(audioCtx.destination, {
+            channels: 1
+        });
+    }
 }
 
 function updateVolume(vol) {
@@ -214,7 +258,7 @@ const io = require('socket.io-client');
 
 document.addEventListener('DOMContentLoaded', () => {
 
-	var socket = io(); 
+	
 	info.initInfo();
 
 	let infoElementIds = ['on-off-sect', 'vol', 'frq', 'bndeq', 'bnddr', 'dmd-sect', 'flt'];
@@ -239,7 +283,7 @@ document.addEventListener('DOMContentLoaded', () => {
 					//aump.updateDemod(event.target.value);
 				case 'flt':
 					//aump.updateFilter(event.target.value);
-					if(event.type==='change' && info.usr_cfg.onoff==='on') info.sendInfoServer(socket);
+					//if(event.type==='change' && info.usr_cfg.onoff==='on') info.sendInfoServer(socket);
 					break;
 			}
 		}

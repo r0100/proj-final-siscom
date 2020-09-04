@@ -4,10 +4,15 @@ const usb = require("./usbiqdemod.js");
 const lsb = require("./lsbiqdemod.js");
 const aux = require("../auxiliary.js");
 
+const {Transform} = require('stream');
+
+
 class DemodulateStream extends Transform {
 
     constructor() {
         super({
+            transform(chunk, encoding, cb) {
+                let iq = [[], []];
                 let f_chunk = new Float32Array(chunk.buffer)
         
                 
@@ -20,29 +25,36 @@ class DemodulateStream extends Transform {
         
                 switch (this.type) {
                     case 'fm':
-                        y = fmiqdemod.iqdemod(iq);
+                        y = fm.iqdemod(iq);
                         break;
                 
                     case 'am':
-                        y = amiqdemod.iqdemod(iq);
+                        y = am.iqdemod(iq);
                         break;
                     default:
                         y = []
                         break;
                 }
-        
-                
+
+                if (this.filter) {
+                    y = aux.filterff(y);
+                }
                 
                 this.push(Buffer.from((new Float32Array(y).buffer)))
         
                 cb();
             }
         })
-        this.type = 'fm'
+        this.type = 'fm';
+        this.filter = true;
     }
 
     changeDemodulator(type) {
         this.type = type
+    }
+
+    changeFilter(state) {
+        this.filter = state;
     }
 
 }

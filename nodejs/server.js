@@ -45,7 +45,8 @@ io.on('connection', (socket) => {
 		console.log('Usuário ' + socket.id + ' disconectou');
 		//stop();
 	})
-	socket.on(GET_AUDIO, (usr_cfg) => {
+
+/* 	socket.on(GET_AUDIO, (usr_cfg) => {
 		//console.log('Usuário ' + socket.id + ' requisitou audio');
 		console.log(usr_cfg);
 
@@ -63,13 +64,16 @@ io.on('connection', (socket) => {
 			dem.demodulateff.pipe(aux.filterstreamff).pipe(aux.decimateff);
 		else
 			dem.demodulateff.pipe(aux.decimateff);
-	})
-	socket.on(STOP_AUDIO, () => {
+	}) */
+
+/* 	socket.on(STOP_AUDIO, () => {
 		//console.log('Usuário ' + socket.id + ' parou o audio');
 		stop();
 		reset();
 		in_stream = fs.createReadStream(AUDIO_FILE);
-	})
+	}) */
+
+
 	socket.on(UPDATE_CFG, (usr_cfg) => {
 		console.log('Atualizando configuração');
 		console.log(usr_cfg);
@@ -77,16 +81,20 @@ io.on('connection', (socket) => {
 		//sdr.set_center_freq(center_frq);
 		dem.demodulateff.changeDemodulator(usr_cfg.dmd);
 	})
-	aux.decimateff.on('data', (chunk) => {
+
+/* 	aux.decimateff.on('data', (chunk) => {
 		//console.log('Enviando audio');
 		//console.log(chunk);
 		io.emit(RECV_AUDIO, chunk);
 	})
-	aux.decimateff.on('end', () => {
+ */
+/* 	aux.decimateff.on('end', () => {
 		io.emit(AUDIO_EOF);
 		stop();
 		reset();
-	})
+	}) */
+
+
 
 	socket.on('set_config', (config) => {
 		console.log(config)
@@ -110,10 +118,18 @@ io.on('connection', (socket) => {
 //#####SDR#####
 //#############
 
-sdr.outStream.on('data', (chunk) => {
+sdr.outStream
+.pipe(dem.demdulateff)
+.pipe(aux.decimateff).on('data', (chunk) => {
+	//console.log('Enviando audio');
+	console.log(chunk.length);
+	io.emit(RECV_AUDIO, chunk);
+})
+
+/* sdr.outStream.on('data', (chunk) => {
 	console.log(chunk.length)
 	io.emit('chunk_audio', chunk);
-})
+}) */
 sdr.mySdr.start();
 
 

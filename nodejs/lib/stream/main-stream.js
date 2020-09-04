@@ -193,11 +193,8 @@ module.exports = {
     mySdr: mySdr,
     //outStream: decimator.stdout,
     outStream: mySdr.stream
-    .pipe(bin2float)
-    .pipe(prefilterstreamff)
-    .pipe(demodulateStream)
-    .pipe(filterstreamff)
-    .pipe(decimateff),
+        .pipe(bin2float)
+        .pipe(prefilterstreamff),
     demodulateStream,
     MIN_CENTER_FREQ: 26e6,
     MAX_CENTER_FREQ: 1700e6

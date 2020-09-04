@@ -58,6 +58,23 @@ let decimateff = new Transform({
 });
 */
 
+function filterff(chunkF) {
+	let tmp = [];
+	let y = [];
+	let filter_order = audio_filter.length;
+	for(let i = 0; i < chunkF.length; i++) {
+		tmp.push(chunkF[i]);
+		if(i > filter_order) {
+			y[i] = fir_filter(tmp, audio_filter);
+			tmp.shift();
+		} else {
+			y[i] = tmp[i];
+		}
+	}
+
+	return y
+}
+
 let filterstreamff = new Transform({
 	transform(chunk, encoding, cb) {
 
@@ -159,5 +176,6 @@ module.exports = {
 	filterstreamff: filterstreamff,
 	prefilterstreamff: prefilterstreamff,
 	bin2float: bin2float,
-	float2bin: float2bin
+	float2bin: float2bin,
+	filterff
 }; 

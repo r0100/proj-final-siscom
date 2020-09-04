@@ -4,7 +4,7 @@ const io = require('socket.io-client');
 
 document.addEventListener('DOMContentLoaded', () => {
 
-	var socket = io(); 
+	
 	info.initInfo();
 
 	let infoElementIds = ['on-off-sect', 'vol', 'frq', 'bndeq', 'bnddr', 'dmd-sect', 'flt'];
@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
 					//aump.updateDemod(event.target.value);
 				case 'flt':
 					//aump.updateFilter(event.target.value);
-					if(event.type==='change' && info.usr_cfg.onoff==='on') info.sendInfoServer(socket);
+					//if(event.type==='change' && info.usr_cfg.onoff==='on') info.sendInfoServer(socket);
 					break;
 			}
 		}
