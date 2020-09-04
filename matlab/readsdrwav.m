@@ -1,3 +1,4 @@
+%função de leitura dos arquivos WAV retirados do airspy
 function output= readsdrwav(path, sample_window)
 if(sample_window <= 0)
     raw = audioread(path);

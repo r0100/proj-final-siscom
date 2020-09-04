@@ -3,6 +3,7 @@
 const GET_AUDIO = 'get-audio';
 const RECV_AUDIO = 'received-audio'
 const STOP_AUDIO = 'stop-audio';
+const UPDATE_CFG = 'update-cfg';
 
 let usr_cfg = {
     onoff: "off",
@@ -70,5 +71,6 @@ function updateInfoText(param) {
 }
 
 function sendInfoServer(socket) {
-	socket.emit(GET_AUDIO, usr_cfg);
+	//socket.emit(STOP_AUDIO);
+	socket.emit(UPDATE_CFG, usr_cfg);
 }

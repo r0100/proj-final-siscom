@@ -7,14 +7,13 @@ const io = require('socket.io-client');
 const GET_AUDIO = 'get-audio';
 const RECV_AUDIO = 'received-audio'
 const STOP_AUDIO = 'stop-audio';
+const AUDIO_EOF = 'audio-ended';
 const FS = 48e3;
 const CHANNEL_NUM = 1;
 
 let ctx;
 let source;
 let volume;
-let audio_elmt;
-let out_stream;
 
 module.exports = {
 	ctx: ctx,
@@ -27,79 +26,88 @@ module.exports = {
 function initAudio(socket, cfg) {
 	let audioContext = window.AudioContext||window.webkitAudioContext;
 	ctx = new AudioContext({latencyHint: 'interactive', sampleRate: FS});
-	audio_elmt = document.querySelector('#audio-stream');
-	console.log(audio_elmt);
-	audio_elmt.volume = 0.5;
-	source = ctx.createMediaElementSource(audio_elmt);
+	source = ctx.createBufferSource();
+	volume = ctx.createGain();
+	source.loop = true;
+	source.playbackRate.value = 0.99;
+	volume.gain.setValueAtTime(0.5, ctx.currentTime);
+	source.connect(volume).connect(ctx.destination);
+	source.start();
 
+	console.log('pedindo audio');
 	socket.emit(GET_AUDIO, cfg);
-}
+	socket.on(RECV_AUDIO, (audio_data) => {
+		//console.log('dados recebidos');
 
-socket.on(RECV_AUDIO, (audio_data) => {
-	//Filtra buffers de tamanho errado
-	if (audio_data.byteLength % 2 !== 0) return;
-	if(ctx===null) return;
+		let shift_audio = false;
+		//Filtra buffers de tamanho errado
+		if (audio_data.byteLength % 2 !== 0) shift_audio = true;
 
-	let bin_buffer = new Uint8Array(audio_data);
-	console.log('bin_buffer');
-	console.log(bin_buffer);
-	let audio_buffer = [];
-	audio_buffer = bin_buffer.map((sample) => {return (sample/127.5 -1)});
-	audio_buffer = new Float32Array(audio_buffer);
-	console.log('audio_buffer');
-	console.log(audio_buffer);
+		if(ctx===null) {
+			console.log('Erro: ctx (AudioContext) nulo');
+			return;
+		}
 
-	let myArrayBuffer = ctx.createBuffer(CHANNEL_NUM, audio_buffer.length, FS);
-	//over-engineering is fun
-	for(let i = 0; i<CHANNEL_NUM; i++) myArrayBuffer.copyToChannel(audio_buffer, i);
-	//out_stream(myArrayBuffer);
+		let audio_buffer = new Float32Array(audio_data);
+		if(shift_audio) audio_buffer.shift();
+		//console.log(audio_buffer);
 
-	source.buffer = myArrayBuffer;
-	source.connect(ctx.destination);
-	audio_elmt.play();
-});
+		let myArrayBuffer = ctx.createBuffer(CHANNEL_NUM, audio_buffer.length, FS);
+		//over-engineering is fun
+		for(let i = 0; i<CHANNEL_NUM; i++) myArrayBuffer.copyToChannel(audio_buffer, i);
+		//out_stream(myArrayBuffer);
 
-socket.on('error', (reason) => {
-	playPause('off', cfg, socket);
-	console.log('Erro genérico')
-	console.log(reason);
-})
+			source.buffer = myArrayBuffer;
+			console.log(source.buffer);
+	});
 
+	socket.on(AUDIO_EOF, () => {
+		playPause('off', cfg, socket);
+		console.log('Fim do audio');
+	})
+	socket.on('error', (reason) => {
+		playPause('off', cfg, socket);
+		console.log('Erro genérico')
+		console.log(reason);
+	})
 socket.on('connect_error', (reason) => {
 	playPause('off', cfg, socket);
 	console.log('Erro na conexão');
 	console.log(reason);
 })
-
-socket.on('disconnect', (reason) => {
-	playPause('off', cfg, socket);
-	console.log('Erro, serviço disconectado');
-	console.log(reason);
-})
-
+}
 
 function playPause(onoff, cfg, socket) {
-	//console.log(cfg);
 	if(onoff==='on') {
+		console.log('Ligando o audio')
 		updateVolume(cfg.vol);
 		initAudio(socket, cfg);
 	} else {
+		console.log('Desligando o audio');
 		socket.emit(STOP_AUDIO);
-		audio_elmt.pause();
-		if(source && ctx) {
-			source.disconnect()
-			ctx.destination.disconnect();
-			ctx = null;
-			source=null;
+		if(volume) {
+			volume.gain.setValueAtTime(0, ctx.currentTime);
+			volume.disconnect();
 		}
+		if(source) {
+			source.loop = false;
+			source.stop();
+			source.disconnect();
+		}
+		if(ctx) ctx.destination.disconnect();
+		ctx = null;
+		volume = null;
+		source=null;
 	}
 }
 
 function updateVolume(vol) {
+	console.log(vol);
 	console.log('Novo valor de volume: ' + vol);
 	if(volume)
-		audio_elmt.volume = Number(vol)/100;
+		volume.gain.setValueAtTime(Number(vol)/100, ctx.currentTime);
 }
+
 /*
 function updateDemod(method) {
 	console.log('Mudando para demodulação ' + method);
@@ -127,6 +135,7 @@ function updateFilter(fltCond) {
 const GET_AUDIO = 'get-audio';
 const RECV_AUDIO = 'received-audio'
 const STOP_AUDIO = 'stop-audio';
+const UPDATE_CFG = 'update-cfg';
 
 let usr_cfg = {
     onoff: "off",
@@ -194,7 +203,8 @@ function updateInfoText(param) {
 }
 
 function sendInfoServer(socket) {
-	socket.emit(GET_AUDIO, usr_cfg);
+	//socket.emit(STOP_AUDIO);
+	socket.emit(UPDATE_CFG, usr_cfg);
 }
 
 },{}],3:[function(require,module,exports){

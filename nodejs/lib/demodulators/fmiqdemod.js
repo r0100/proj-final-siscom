@@ -54,3 +54,15 @@ module.exports = {
     demod: demod,
     demodstreamff: demodstreamff //para uso com streams.
 };
+
+function fir_filter(sinal, fltr_coef) {
+    let sinal_length = sinal.length;
+    let filter_order = fltr_coef.length;
+    let y = 0;
+
+    for(let i = 0; i<filter_order; i++)
+        y += sinal[filter_order-i]*fltr_coef[i];
+
+    return y;
+}
+

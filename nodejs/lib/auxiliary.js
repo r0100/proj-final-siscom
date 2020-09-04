@@ -5,6 +5,11 @@ export está no fim
 *****************/
 
 const { Transform } = require('stream');
+const am = require('./demodulators/amiqdemod.js');
+const fm = require('./demodulators/fmiqdemod.js');
+const lsb = require('./demodulators/lsbiqdemod.js');
+const usb = require('./demodulators/usbiqdemod.js');
+const no = require('./demodulators/noiqdemod.js');
 
 //filtro passa-baixa para 16kHz e fs de 300kHz
 const audio_filter = [0.0094678, 0.0242009, 0.0661356, 0.1248971, 0.1766591, 0.1972793, 0.1766591, 0.1248971, 0.0661356, 0.0242009, 0.0094678]; 
@@ -22,7 +27,22 @@ function fir_filter(sinal, fltr_coef) {
 
     return y;
 }
+//versão que está na master
+let decimateff = new Transform({
+	transform(chunk, encoding, cb) {
+		//faz a decimação de 300kHz para 48kHz
+		//a função espera um sinal monofônico
+		let dec_ratio = 6; //Math.floor(300/48);
+		chunk = new Float32Array(chunk.buffer);
+		let output = [];
+		for(let i = 0; i < chunk.length; i++) if(i%dec_ratio===0) output.push(chunk[i]);
+		output = new Float32Array(output);
+		this.push(Buffer.from(output.buffer));
+		cb();
+	}
+});
 
+/* versão antiga
 let decimateff = new Transform({
 	transform(chunk, encoding, cb) {
 		//faz a decimação de 300kHz para 48kHz
@@ -36,6 +56,7 @@ let decimateff = new Transform({
 		cb();
 	}
 });
+*/
 
 let filterstreamff = new Transform({
 	transform(chunk, encoding, cb) {
@@ -98,7 +119,6 @@ let prefilterstreamff = new Transform({
 	}
 });
 
-
 let bin2float = new Transform({
 	transform(chunk, encoding, cb) {
 		chunk = new Uint8Array(chunk);
@@ -135,7 +155,6 @@ let float2bin = new Transform({
 module.exports = {
 	fir_filter: fir_filter,
 	audio_filter: audio_filter,
-	pre_filter: pre_filter,
 	decimateff: decimateff,
 	filterstreamff: filterstreamff,
 	prefilterstreamff: prefilterstreamff,

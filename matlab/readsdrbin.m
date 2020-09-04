@@ -1,4 +1,4 @@
-%adaptar o código do site do Aron Scher aqui
+%função de leitura de binários provindos direto do RTL-SDR
 function output = readsdrbin(path)
   
   shiftbits = bin2dec('10000');
