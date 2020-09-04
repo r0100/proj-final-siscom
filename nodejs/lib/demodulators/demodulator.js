@@ -1,3 +1,9 @@
+const fm = require("./fmiqdemod.js");
+const am = require("./amiqdemod.js");
+const usb = require("./usbiqdemod.js");
+const lsb = require("./lsbiqdemod.js");
+const no = require("./noiqdemod.js");
+
 class DemodulateStream extends Transform {
 
     constructor() {
@@ -14,25 +20,29 @@ class DemodulateStream extends Transform {
         
                 switch (this.type) {
                     case 'fm':
-                        y = fmiqdemod.iqdemod(iq);
+                        y = fm.demod(iq);
                         break;
                 
                     case 'am':
-                        y = amiqdemod.iqdemod(iq);
+                        y = am.demod(iq);
+                        break;
+                    case 'lsb:
+                        y = lsb.demod(iq);
+                        break;
+                    case 'usb':
+                        y = usb.demod(iq);
                         break;
                     default:
-                        y = []
+                        y = no.demod(iq);
                         break;
                 }
-        
-                
                 
                 this.push(Buffer.from((new Float32Array(y).buffer)))
         
                 cb();
             }
         })
-        this.type = 'fm'
+        this.type = 'nenhum'
     }
 
     changeDemodulator(type) {

@@ -5,11 +5,6 @@ export está no fim
 *****************/
 
 const { Transform } = require('stream');
-const am = require('./demodulators/amiqdemod.js');
-const fm = require('./demodulators/fmiqdemod.js');
-const lsb = require('./demodulators/lsbiqdemod.js');
-const usb = require('./demodulators/usbiqdemod.js');
-const no = require('./demodulators/noiqdemod.js');
 
 //filtro passa-baixa para 16kHz e fs de 300kHz
 const audio_filter = [0.0094678, 0.0242009, 0.0661356, 0.1248971, 0.1766591, 0.1972793, 0.1766591, 0.1248971, 0.0661356, 0.0242009, 0.0094678]; 
@@ -27,12 +22,52 @@ function fir_filter(sinal, fltr_coef) {
 
     return y;
 }
+
+class Filter extends Transform {
+	constructor() {
+		super({
+			let output_buffer;
+			if(this.state==='off') {
+				output_buffer = chunk
+			} else {
+				chunk = new Float32Array(chunk.buffer);
+				//console.log(chunk);
+				let tmp = [];
+				let y = [];
+				let filter_order = audio_filter.length;
+
+				for(let i = 0; i < chunk.length; i++) {
+					tmp.push(chunk[i]);
+					if(i > filter_order) {
+						y[i] = fir_filter(tmp, audio_filter);
+						tmp.shift();
+					} else {
+						y[i] = tmp[i];
+					}
+				}
+
+				y = new Float32Array(y);
+				//console.log(y);
+				output_buffer = Buffer.from(y.buffer);
+			}
+
+			this.push(output_buffer);
+			cb();
+		})
+		this.state = 'on';
+	}
+
+	changeState(newState) {
+		this.state = newState;
+	}
+}
 //versão que está na master
 let decimateff = new Transform({
 	transform(chunk, encoding, cb) {
 		//faz a decimação de 300kHz para 48kHz
 		//a função espera um sinal monofônico
-		let dec_ratio = 6; //Math.floor(300/48);
+		//let dec_ratio = 6; //Math.floor(300/48);
+		let dec_ratio = 5; //Math.floor(240/48);
 		chunk = new Float32Array(chunk.buffer);
 		let output = [];
 		for(let i = 0; i < chunk.length; i++) if(i%dec_ratio===0) output.push(chunk[i]);
@@ -41,22 +76,6 @@ let decimateff = new Transform({
 		cb();
 	}
 });
-
-/* versão antiga
-let decimateff = new Transform({
-	transform(chunk, encoding, cb) {
-		//faz a decimação de 300kHz para 48kHz
-		//a função espera um sinal monofônico
-		let dec_ratio = 5; //Math.floor(300/48);
-		chunk = new Float32Array(chunk.buffer);
-		let output = [];
-		for(let i = 0; i < chunk.length; i++) if(i%dec_ratio===0) output.push(chunk[i]);
-		output = new Float32Array(output);
-		this.push(Buffer.from(output.buffer));
-		cb();
-	}
-});
-*/
 
 let filterstreamff = new Transform({
 	transform(chunk, encoding, cb) {
@@ -156,7 +175,7 @@ module.exports = {
 	fir_filter: fir_filter,
 	audio_filter: audio_filter,
 	decimateff: decimateff,
-	filterstreamff: filterstreamff,
+	filterstreamff: new Filter(),
 	prefilterstreamff: prefilterstreamff,
 	bin2float: bin2float,
 	float2bin: float2bin
