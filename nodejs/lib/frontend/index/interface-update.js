@@ -59,6 +59,9 @@ function initInfo() {
 }
 
 function updateInfoText(param) {
-	document.getElementById(param.id + 'show').innerHTML = returnInfoText(param.id, param.value);
+	let id = param.id;
+	if(param.id==='frqtext')
+		id = "frq";
+	document.getElementById(id + 'show').innerHTML = returnInfoText(id, param.value);
 	return param.value;
 }
