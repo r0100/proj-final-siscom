@@ -9,7 +9,9 @@ const fs = require('fs');
 
 //const sdr = require('./lib/stream/main-stream.js');
 const aux = require('./lib/auxiliary.js');
+
 const dem = require('./lib/demodulators/demodulator.js');
+const sdr = require('./lib/stream/main-stream');
 
 const PORT = process.env.PORT||5000;
 const URL_ADDR = '127.0.0.1:'+PORT;
@@ -41,7 +43,7 @@ io.on('connection', (socket) => {
 
 	socket.on('disconnect', () => {
 		console.log('Usuário ' + socket.id + ' disconectou');
-		stop();
+		//stop();
 	})
 	socket.on(GET_AUDIO, (usr_cfg) => {
 		//console.log('Usuário ' + socket.id + ' requisitou audio');
@@ -85,18 +87,35 @@ io.on('connection', (socket) => {
 		stop();
 		reset();
 	})
+
+	socket.on('set_config', (config) => {
+		console.log(config)
+		const {center_freq, demodulation} = config;
+		if (center_freq) {
+			if (typeof center_freq === 'number') {
+				if (center_freq >= sdr.MIN_CENTER_FREQ &&
+					center_freq <= sdr.MAX_CENTER_FREQ) {
+						sdr.mySdr.setCenterFreq(center_freq)
+				}
+			}
+		}
+	
+		if (demodulation) {
+			sdr.demodulateStream.changeDemodulator(demodulation)
+		}
+	})
 })
 
 //#############
 //#####SDR#####
 //#############
-/*
+
 sdr.outStream.on('data', (chunk) => {
 	console.log(chunk.length)
-	io.emit('raw_audio', chunk);
+	io.emit('chunk_audio', chunk);
 })
 sdr.mySdr.start();
-*/
+
 
 http.listen(PORT, () => {
 	console.log('Server working at port ' + PORT);

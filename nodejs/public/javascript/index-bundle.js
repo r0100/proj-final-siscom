@@ -36,7 +36,6 @@ function initAudio(socket, cfg) {
 
 	console.log('pedindo audio');
 	socket.emit(GET_AUDIO, cfg);
-
 	socket.on(RECV_AUDIO, (audio_data) => {
 		//console.log('dados recebidos');
 
@@ -71,18 +70,11 @@ function initAudio(socket, cfg) {
 		console.log('Erro genérico')
 		console.log(reason);
 	})
-
-	socket.on('connect_error', (reason) => {
-		playPause('off', cfg, socket);
-		console.log('Erro na conexão');
-		console.log(reason);
-	})
-
-	socket.on('disconnect', (reason) => {
-		playPause('off', cfg, socket);
-		console.log('Erro, serviço disconectado');
-		console.log(reason);
-	})
+socket.on('connect_error', (reason) => {
+	playPause('off', cfg, socket);
+	console.log('Erro na conexão');
+	console.log(reason);
+})
 }
 
 function playPause(onoff, cfg, socket) {

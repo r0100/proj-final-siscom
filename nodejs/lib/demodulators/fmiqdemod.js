@@ -7,11 +7,11 @@ const { Transform } = require('stream');
 export está no fim
 *****************/
 
-function demod(iq, fltr_coef) {
+function demod(iq) {
 	let buffer_size = iq[0].length;
 	let y = [];
 	let tmp = [];
-	let filter_order = fltr_coef.length;
+	//let filter_order = fltr_coef.length;
 	const CORR_FACTOR = 0.340447550238101026565118445432744920253753662109375; //retirado do código do csdr
 	for(let count = 0; count<buffer_size; count++) {
 		let i = iq[0][count];
@@ -20,14 +20,14 @@ function demod(iq, fltr_coef) {
 		let dq = count===0?q:(iq[1][count]-iq[1][count-1]);
 		let den = i*i + q*q;
 		tmp.push( (den===0)?0:CORR_FACTOR*(i*dq - q*di)/den );
-		if(count>filter_order) {
-			y[count] = fir_filter(tmp, fltr_coef);
+		/* if(count>filter_order) {
+			y[count] = aux.fir_filter(tmp, fltr_coef);
 			tmp.shift();
 		} else {
 			y[count] = tmp[count];
-		}
+		} */
 	}
-	return y;
+	return tmp;
 }
 
 let demodstreamff = new Transform({

@@ -47,7 +47,7 @@ let decimateff = new Transform({
 	transform(chunk, encoding, cb) {
 		//faz a decimação de 300kHz para 48kHz
 		//a função espera um sinal monofônico
-		let dec_ratio = 6; //Math.floor(300/48);
+		let dec_ratio = 5; //Math.floor(300/48);
 		chunk = new Float32Array(chunk.buffer);
 		let output = [];
 		for(let i = 0; i < chunk.length; i++) if(i%dec_ratio===0) output.push(chunk[i]);
