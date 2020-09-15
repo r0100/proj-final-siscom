@@ -23,9 +23,7 @@ module.exports = {
 
 function initAudio(cfg) {
 	socket = io();
-	
-	updateVolume(cfg.vol);
-
+	updateVolume(cfg);
 	socket.emit(UPDATE_CFG, cfg);
 
 	socket.on(RECV_AUDIO, (audio_data) => {
@@ -35,7 +33,9 @@ function initAudio(cfg) {
             outAudioStream = Write(ctx.destination, {
                 channels: CHANNEL_NUM
             });
-        }
+		}
+		
+		console.log(`Audio received: ${audio_data.byteLength} bytes`)
 
 		 //Filter wrong buffers
 		 if (audio_data.byteLength % 2 !== 0)
@@ -47,9 +47,7 @@ function initAudio(cfg) {
 		}
 
 		let audio_buffer = new Float32Array(audio_data);
-		console.log(volume);
 		audio_buffer = audio_buffer.map((val) => val*volume);
-		console.log(audio_buffer);
 
 		let myArrayBuffer = ctx.createBuffer(CHANNEL_NUM, audio_buffer.length, FS);
 		//over-engineering is fun
@@ -112,7 +110,6 @@ function cleanAudioCache() {
 }
 
 function updateVolume(vol) {
-	console.log('Novo valor de volume: ' + vol);
 	volume = Number(vol)/100;
 }
 

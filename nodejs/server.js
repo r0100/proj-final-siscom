@@ -9,7 +9,7 @@ const fs = require('fs');
 
 const aux = require('./lib/auxiliary.js');
 const dem = require('./lib/demodulators/demodulator.js');
-//const sdr = require('./lib/stream/main-stream');
+const sdr = require('./lib/stream/main-stream');
 
 const PORT = process.env.PORT||5000;
 const URL_ADDR = '127.0.0.1:'+PORT;
@@ -55,7 +55,7 @@ io.on('connection', (socket) => {
 			if (frq >= sdr.MIN_CENTER_FREQ &&
 				frq <= sdr.MAX_CENTER_FREQ) {
 					//console.log(frq);
-					//sdr.mySdr.setCenterFreq(frq);
+					sdr.mySdr.setCenterFreq(frq);
 			}
 		}
 	
@@ -91,7 +91,7 @@ io.on('connection', (socket) => {
 //#############
 //#####SDR#####
 //#############
-/*
+
 sdr.outStream
 .pipe(dem.demodulateff)
 .pipe(aux.decimateff).on('data', (chunk) => {
@@ -100,21 +100,11 @@ sdr.outStream
 	io.emit(SEND_AUDIO, chunk);
 })
 
-/* sdr.outStream.on('data', (chunk) => {
-	console.log(chunk.length)
-	io.emit('chunk_audio', chunk);
-}) 
 
 sdr.mySdr.start();
-*/
+
 
 http.listen(PORT, () => {
 	console.log('Server working at port ' + PORT);
 	console.log('Check it at the address ' + URL_ADDR);
-});
-
-function stop() {
-}
-
-function reset() {
-}
+})

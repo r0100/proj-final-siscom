@@ -24,9 +24,7 @@ module.exports = {
 
 function initAudio(cfg) {
 	socket = io();
-	
-	updateVolume(cfg.vol);
-
+	updateVolume(cfg);
 	socket.emit(UPDATE_CFG, cfg);
 
 	socket.on(RECV_AUDIO, (audio_data) => {
@@ -36,7 +34,9 @@ function initAudio(cfg) {
             outAudioStream = Write(ctx.destination, {
                 channels: CHANNEL_NUM
             });
-        }
+		}
+		
+		console.log(`Audio received: ${audio_data.byteLength} bytes`)
 
 		 //Filter wrong buffers
 		 if (audio_data.byteLength % 2 !== 0)
@@ -48,9 +48,7 @@ function initAudio(cfg) {
 		}
 
 		let audio_buffer = new Float32Array(audio_data);
-		console.log(volume);
 		audio_buffer = audio_buffer.map((val) => val*volume);
-		console.log(audio_buffer);
 
 		let myArrayBuffer = ctx.createBuffer(CHANNEL_NUM, audio_buffer.length, FS);
 		//over-engineering is fun
@@ -113,7 +111,6 @@ function cleanAudioCache() {
 }
 
 function updateVolume(vol) {
-	console.log('Novo valor de volume: ' + vol);
 	volume = Number(vol)/100;
 }
 
@@ -195,7 +192,7 @@ const aump = require('./audio-manip.js');
 const info = require('./interface-update.js');
 
 const MAX_FRQ = 1700;
-const MIN_FRQ = 0.5
+const MIN_FRQ = 0.5;
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -204,27 +201,29 @@ document.addEventListener('DOMContentLoaded', () => {
 	let infoElementIds = ['on-off-sect', 'vol', 'frq', 'frqtext', 'dmd-sect', 'flt'];
 
 	infoElementIds.forEach((id) => {
+
 		function callUpdate() {
-			let id = event.target.id;
+			
+			let event_id = event.target.id;
 
 			if(event.target.id==='flt')
 				event.target.value = (event.target.checked===true)?'on':'off';
 			if(event.target.id ==='frq') 
 				getById('frqtext').value = event.target.value;
 			if(event.target.id === 'frqtext') {
-				id = 'frq';
+				event_id = 'frq';
 				getById('frq').value = event.target.value;
 			}
 
-			if(id = 'frq') {
+			if(event_id === 'frq') {
 				let frq_value = Number(event.target.value);
 				if(frq_value > MAX_FRQ) event.target.value = MAX_FRQ;
 				if(frq_value < MIN_FRQ) event.target.value = MIN_FRQ;
 			}
 
-			info.usr_cfg[id] = info.updateInfoText(event.target);			
+			info.usr_cfg[event_id] = info.updateInfoText(event.target);			
 
-			switch(id) {
+			switch(event_id) {
 				case 'onoff':
 					aump.playPause(event.target.value, info.usr_cfg);
 					break;
@@ -232,8 +231,8 @@ document.addEventListener('DOMContentLoaded', () => {
 					aump.updateVolume(event.target.value);
 					break;
 				case 'frq':
-				//case 'bndeq':
-				//case 'bnddr':
+				case 'bndeq':
+				case 'bnddr':
 				case 'dmd':
 				case 'flt':
 					if(event.type==='change' && info.usr_cfg.onoff==='on') aump.sendInfoServer(info.usr_cfg);
@@ -247,8 +246,8 @@ document.addEventListener('DOMContentLoaded', () => {
 				getById(id).onkeyup = callUpdate;
 				getById(id).onkeypress = callUpdate;
 			case 'frq':
-			//case 'bndeq':
-			//case 'bnddr':
+			case 'bndeq':
+			case 'bnddr':
 			case 'vol':
 				getById(id).onmousemove = callUpdate;
 			case 'on-off-sect':
