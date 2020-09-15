@@ -25,7 +25,7 @@ remota utilizando _internet_ e por meio de um _site_.
 
 ### Dependências
 
-- Um RTL-SDR
+- Um RTL-SDR e antena que permita captar áudio da banda suportada pelo sistema.
 - Software Node.js versão 10.X.X e as dependências listadas no package.json
 - [Biblioteca rtl-sdr (versão de IncognitoJam) e suas dependências libusb e librtlsdr-dev](https://github.com/IncognitoJam/rtl-sdr)
 - Browser Firefox 25+, Google Chrome 35+ ou outro que suporte a [API WebAudio](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API#Browser_compatibility)
