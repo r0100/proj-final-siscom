@@ -3,8 +3,8 @@ let usr_cfg = {
     onoff: "off",
     vol: "50",
     frq: 850, //em MHz
-    bndeq: 16,
-    bnddr: 16,
+ /*    bndeq: 16,
+    bnddr: 16, */
     dmd: "nenhum",
     flt: 'on',
 };
@@ -29,12 +29,12 @@ function returnInfoText(code, value) {
 		case "frq":
 			text = "Frequência Central: "+value+"MHz";
 			break;
-		case "bndeq":
+/* 		case "bndeq":
 			text = "Banda Esquerda: "+value+"MHz";
 			break;
 		case "bnddr":
 			text = "Banda Direita: "+value+"MHz";
-			break;
+			break; */
 		case "dmd":
 			text = "Método de Demodulação: " + ((value==="nenhum")?(value[0].toUpperCase()+value.substr(1)):value.toUpperCase());
 			break;

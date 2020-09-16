@@ -4,7 +4,7 @@
   "description": "Projeto final da disciplina de sistemas de comunicação",
   "main": "index.js",
   "scripts": {
-    "build-server": "npx browserify ./lib/frontend/test/ -o ./public/javascript/test-bundle.js && npx browserify ./lib/frontend/index/ -o ./public/javascript/index-bundle.js",
+    "build-server": "npx browserify ./lib/frontend/index/ -o ./public/javascript/index-bundle.js",
     "start": "node server.js"
   },
   "repository": {

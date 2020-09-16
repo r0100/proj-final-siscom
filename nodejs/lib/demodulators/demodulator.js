@@ -31,6 +31,12 @@ class DemodulateStream extends Transform {
                     case 'am':
                         y = am.iqdemod(iq);
                         break;
+                    case 'lsb':
+                        y = lsb.iqdemod(iq);
+                        break;
+                    case 'usb':
+                        y = usb.iqdemod(iq);
+                        break;
                     default:
                         y = []
                         break;
